@@ -637,6 +637,7 @@
     -->
     <script>
         // --- KONFIGURASI (WAJIB DIISI!) ---
+        // PASTIKAN ANDA MENGISI URL DEPLOYMENT APPS SCRIPT ANDA DI SINI
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzjMeA3l-C5W8gUtz9NOZYr5JjGQcMtIOYAbA-ACddbNCB85KQeveWRP6hgFtDZk_lG/exec"; 
         // ------------------------------------
 
@@ -794,7 +795,11 @@
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 detik timeout
                 
-                const response = await fetch(APPS_SCRIPT_URL + '?action=getDriveData', {
+                // ==================================================================
+                // PERBAIKAN: Menambahkan cache buster '&t=' + new Date().getTime()
+                // Ini memaksa browser mengambil data baru setiap kali
+                // ==================================================================
+                const response = await fetch(APPS_SCRIPT_URL + '?action=getDriveData&t=' + new Date().getTime(), {
                     signal: controller.signal,
                     cache: 'no-store' // Hindari cache
                 });
@@ -964,9 +969,10 @@
             });
             
             // --- Storage Progress ---
+            // 'quota.limit' bisa jadi -1 (unlimited) atau 0 jika error
             const used = quota ? parseFloat(quota.usage) : 0;
-            const limit = quota ? parseFloat(quota.limit) : 1;
-            const free = limit - used;
+            const limit = (quota && quota.limit > 0) ? parseFloat(quota.limit) : (used > 0 ? used : 1); // Jika limit tidak ada, jadikan 'used' sebagai 100%
+            const free = (quota && quota.limit > 0) ? limit - used : 0;
             const percent = (limit <= 0) ? 0 : Math.min((used / limit) * 100, 100);
             
             // Update progress circle
@@ -978,8 +984,15 @@
             // Update text
             document.getElementById('storage-percent').textContent = Math.round(percent) + '%';
             document.getElementById('storage-used').textContent = formatFileSize(used);
-            document.getElementById('storage-free').textContent = formatFileSize(free);
-            document.getElementById('storage-total').textContent = limit === -1 ? 'Unlimited' : formatFileSize(limit);
+    
+            // Tampilkan "Unlimited" atau "N/A" jika limit tidak ada/error
+            if (quota.limit === -1 || quota.limit === 0) {
+                document.getElementById('storage-free').textContent = "N/A";
+                document.getElementById('storage-total').textContent = "N/A";
+            } else {
+                document.getElementById('storage-free').textContent = formatFileSize(free);
+                document.getElementById('storage-total').textContent = formatFileSize(limit);
+            }
             
             // --- Recent Files Table ---
             const recentFilesEl = document.getElementById('recent-files');
@@ -1135,11 +1148,16 @@
 
                     if (result.status === 'success') {
                         showToast('File berhasil diunggah!', 'success');
+                        
+                        // ==================================================================
+                        // PERBAIKAN: Mengubah delay dari 1500ms ke 3000ms
+                        // Memberi waktu Google Drive memproses thumbnail
+                        // ==================================================================
                         setTimeout(() => {
                             resetUploadForm();
                             showPage('gallery-page');
                             loadDriveData();
-                        }, 1500);
+                        }, 3000); // <-- DIUBAH JADI 3 DETIK
                     } else {
                         throw new Error(result.error || 'Upload gagal');
                     }
