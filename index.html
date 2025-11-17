@@ -117,30 +117,30 @@
         }
 
         /* * ===============================================
-         * == PERUBAHAN GRID KECIL (SESUAI PERMINTAAN) ==
+         * == GRID KECIL (3 KOLOM DI HP)
          * ===============================================
         */
         .masonry-grid {
-            column-count: 3; /* UBAH: jadi 3 kolom di mobile (grid kecil) */
-            column-gap: 0.5rem; /* UBAH: jarak lebih rapat lagi */
+            column-count: 3; /* 3 kolom di mobile (grid kecil) */
+            column-gap: 0.5rem; /* jarak lebih rapat */
         }
 
         @media (min-width: 640px) {
             .masonry-grid {
-                column-count: 4; /* UBAH: 4 di tablet */
+                column-count: 4; /* 4 di tablet */
                 column-gap: 0.75rem;
             }
         }
 
         @media (min-width: 1024px) {
             .masonry-grid {
-                column-count: 5; /* UBAH: 5 di desktop */
+                column-count: 5; /* 5 di desktop */
             }
         }
 
         .masonry-item {
             break-inside: avoid;
-            margin-bottom: 0.5rem; /* UBAH: jarak lebih rapat */
+            margin-bottom: 0.5rem; /* jarak lebih rapat */
         }
         /* =============================================== */
 
@@ -405,14 +405,21 @@
         <div class="page-container flex-grow p-4 md:p-8 max-w-7xl mx-auto w-full">
             <!-- Halaman Galeri -->
             <section id="gallery-page" class="page active">
-                <!-- Filter Tabs -->
+                
+                <!-- 
+                  * ===============================================
+                  * == PERUBAHAN: Tombol "Semua" dihapus ==
+                  * == "Foto" sekarang menjadi default aktif ==
+                  * ===============================================
+                -->
                 <div class="flex overflow-x-auto gap-2 mb-6" data-aos="fade-up">
-                    <button class="filter-btn flex-shrink-0 px-4 py-2 rounded-lg bg-accent text-white font-medium transition-all" data-filter="all">Semua</button>
-                    <button class="filter-btn flex-shrink-0 px-4 py-2 rounded-lg bg-dark-secondary text-gray-400 hover:text-white font-medium transition-all" data-filter="photos">Foto</button>
+                    <button class="filter-btn flex-shrink-0 px-4 py-2 rounded-lg bg-accent text-white font-medium transition-all" data-filter="photos">Foto</button>
                     <button class="filter-btn flex-shrink-0 px-4 py-2 rounded-lg bg-dark-secondary text-gray-400 hover:text-white font-medium transition-all" data-filter="videos">Video</button>
                     <button class="filter-btn flex-shrink-0 px-4 py-2 rounded-lg bg-dark-secondary text-gray-400 hover:text-white font-medium transition-all" data-filter="music">Musik</button>
                     <button class="filter-btn flex-shrink-0 px-4 py-2 rounded-lg bg-dark-secondary text-gray-400 hover:text-white font-medium transition-all" data-filter="files">Dokumen</button>
                 </div>
+                <!-- =============================================== -->
+
 
                 <!-- Gallery Grid -->
                 <div id="gallery-container" class="masonry-grid">
@@ -656,7 +663,11 @@
         let fileTypeChart = null;
         let currentFile = null;
         let allFiles = [];
-        let currentFilter = 'all';
+        // ===============================================
+        // == PERUBAHAN: Filter default sekarang "photos" ==
+        // ===============================================
+        let currentFilter = 'photos';
+        // ===============================================
         
         // Elemen DOM
         const appContent = document.getElementById('app-content');
@@ -852,13 +863,26 @@
 
         // --- Render Tampilan ---
         function renderGallery() {
-            const filesToShow = currentFilter === 'all' 
-                ? [...allFiles.photos, ...allFiles.videos, ...allFiles.music, ...allFiles.files]
-                : allFiles[currentFilter] || [];
+            // ===============================================
+            // == PERUBAHAN: Logika "all" dihapus ==
+            // == Sekarang langsung ambil dari allFiles[currentFilter] ==
+            // ===============================================
+            const filesToShow = allFiles[currentFilter] || [];
+            // ===============================================
             
             if (filesToShow.length === 0) {
                 galleryContainer.innerHTML = '';
+                // Tampilkan pesan empty state yang lebih spesifik
                 emptyGallery.classList.remove('hidden');
+                document.querySelector("#empty-gallery h3").textContent = `Belum ada ${currentFilter}`;
+                document.querySelector("#empty-gallery p").textContent = "Coba unggah beberapa file di kategori ini.";
+                
+                // Sembunyikan pesan jika filter 'all' (meskipun sudah dihapus)
+                if (currentFilter === 'all') {
+                     document.querySelector("#empty-gallery h3").textContent = "Belum ada file";
+                     document.querySelector("#empty-gallery p").textContent = "Mulai dengan mengunggah file pertama Anda.";
+                }
+                
                 return;
             }
             
@@ -877,10 +901,7 @@
                            file.mimeType.startsWith('audio/') ? 'music' : 'files';
                 
                 if (isImage) {
-                    // ==================================================================
-                    // USAHA TERAKHIR (hehe): Menambahkan crossorigin="anonymous"
-                    // Siapa tahu ini membantu...
-                    // ==================================================================
+                    // Menambahkan referrerpolicy="no-referrer" dan crossorigin="anonymous"
                     item.innerHTML = `
                         <div class="gallery-item">
                             <img src="${file.thumbnailUrl}" alt="${file.name}" loading="lazy" class="aspect-[3/4] object-cover" referrerpolicy="no-referrer" crossorigin="anonymous">
