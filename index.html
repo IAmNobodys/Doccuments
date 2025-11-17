@@ -4,17 +4,69 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Our Private Space (Apps Script)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <!-- Impor Chart.js untuk diagram statistik -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Font Awesome untuk ikon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- AOS Animation Library -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    
+    <!-- Konfigurasi Tailwind -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'dark-bg': '#0f0f0f',
+                        'dark-primary': '#1a1a1a',
+                        'dark-secondary': '#252525',
+                        'dark-tertiary': '#2f2f2f',
+                        'dark-text': '#e0e0e0',
+                        'accent': '#8b5cf6',
+                        'accent-light': '#a78bfa',
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'spin-slow': 'spin 3s linear infinite',
+                        'slide-up': 'slideUp 0.3s ease',
+                        'bounce-in': 'bounceIn 0.6s ease',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(100%)' },
+                            '100%': { transform: 'translateY(0)' }
+                        },
+                        bounceIn: {
+                            '0%': { transform: 'scale(0.3)', opacity: '0' },
+                            '50%': { transform: 'scale(1.05)' },
+                            '70%': { transform: 'scale(0.9)' },
+                            '100%': { transform: 'scale(1)', opacity: '1' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
     <style>
-        /* CSS Kustom (Tanpa Framework) */
+        /* CSS Kustom untuk hal-hal yang tidak dapat ditangani oleh Tailwind */
         :root {
-            --bg-color: #121212;
-            --primary-color: #1e1e1e;
-            --secondary-color: #2a2a2a;
+            --bg-color: #0f0f0f;
+            --primary-color: #1a1a1a;
+            --secondary-color: #252525;
+            --tertiary-color: #2f2f2f;
             --text-color: #e0e0e0;
-            --accent-color: #bb86fc;
-            --font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            --accent-color: #8b5cf6;
+            --accent-light: #a78bfa;
         }
 
         * {
@@ -24,11 +76,14 @@
         }
 
         body {
-            font-family: var(--font-family);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             line-height: 1.6;
             overscroll-behavior: none;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.03) 0%, transparent 50%);
         }
 
         /* Halaman Autentikasi Dihilangkan - Langsung ke Konten */
@@ -41,44 +96,7 @@
             min-height: 100vh;
         }
 
-        /* Navigasi */
-        nav {
-            background-color: var(--primary-color);
-            border-bottom: 1px solid #333;
-            padding: 1.5rem 2rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 2rem;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
-        nav a {
-            color: var(--text-color);
-            text-decoration: none;
-            font-size: 1rem;
-            font-weight: 500;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            transition: background-color 0.3s ease;
-        }
-
-        nav a.active,
-        nav a:hover {
-            background-color: var(--secondary-color);
-        }
-
-        /* Kontainer Halaman */
-        .page-container {
-            flex-grow: 1;
-            padding: 2rem;
-            max-width: 1400px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
+        /* Halaman */
         .page {
             display: none;
             animation: fadeIn 0.5s ease;
@@ -88,466 +106,462 @@
             display: block;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* Grid untuk galeri yang diperbaiki */
+        .masonry-grid {
+            column-count: 2;
+            column-gap: 1rem;
         }
 
-        h2 {
-            font-size: 1.8rem;
-            font-weight: 400;
-            margin-bottom: 1.5rem;
-            border-bottom: 1px solid #444;
-            padding-bottom: 0.5rem;
-        }
-
-        /* Halaman Galeri */
-        .gallery-section {
-            margin-bottom: 2.5rem;
-        }
-
-        .grid-container {
-            display: grid;
-            /* 2 kolom di HP */
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-        }
-
-        /* 4 kolom di tablet dan PC, sesuai permintaan */
-        @media (min-width: 768px) {
-            .grid-container {
-                grid-template-columns: repeat(4, 1fr);
+        @media (min-width: 640px) {
+            .masonry-grid {
+                column-count: 3;
             }
         }
 
-        .grid-item {
-            position: relative;
-            aspect-ratio: 1 / 1;
-            background-color: var(--secondary-color);
-            border-radius: 12px;
-            overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            cursor: pointer;
+        @media (min-width: 1024px) {
+            .masonry-grid {
+                column-count: 4;
+            }
         }
 
-        .grid-item:hover {
-            transform: scale(1.03);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
-        }
-
-        .grid-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: opacity 0.3s ease;
-        }
-
-        .grid-item:hover img {
-            opacity: 0.7;
-        }
-
-        /* Untuk file (non-gambar) */
-        .file-icon {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-            padding: 1rem;
-            text-align: center;
-        }
-
-        .file-icon svg {
-            width: 40px;
-            height: 40px;
-            margin-bottom: 10px;
-            opacity: 0.7;
-        }
-
-        .file-name {
-            font-size: 0.9rem;
-            word-break: break-all;
-            max-height: 3.6em; /* Tampilkan maks 3 baris */
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        /* Overlay untuk info dan download */
-        .grid-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.8) 100%);
-            padding: 2rem 1rem 1rem;
-            transform: translateY(100%);
-            transition: transform 0.3s ease;
-            opacity: 0;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-        }
-
-        .grid-item:hover .grid-overlay {
-            transform: translateY(0);
-            opacity: 1;
-        }
-        
-        .grid-overlay-filename {
-            font-weight: 500;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 70%;
-        }
-
-        .download-btn {
-            background-color: var(--accent-color);
-            color: #121212;
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            text-decoration: none;
-            transition: background-color 0.3s ease;
-        }
-
-        .download-btn:hover {
-            background-color: #a06bf3;
-        }
-
-        .download-btn svg {
-            width: 20px;
-            height: 20px;
-        }
-        
-        .empty-gallery {
-            color: #888;
-            padding: 2rem;
-            text-align: center;
-            background: var(--secondary-color);
-            border-radius: 12px;
-        }
-
-        /* Halaman Upload */
-        #upload-form {
-            background-color: var(--primary-color);
-            padding: 2.5rem;
-            border-radius: 12px;
-            max-width: 600px;
-            margin: 0 auto;
-            border: 1px solid #333;
-        }
-
-        #drop-zone {
-            border: 2px dashed #555;
-            border-radius: 12px;
-            padding: 3rem;
-            text-align: center;
-            cursor: pointer;
-            transition: background-color 0.3s ease, border-color 0.3s ease;
-        }
-
-        #drop-zone.dragover {
-            background-color: var(--secondary-color);
-            border-color: var(--accent-color);
-        }
-
-        #drop-zone p {
-            font-size: 1.1rem;
-            color: #aaa;
+        .masonry-item {
+            break-inside: avoid;
             margin-bottom: 1rem;
         }
 
-        #file-input {
-            display: none;
+        /* Skeleton Loader */
+        .skeleton {
+            background: linear-gradient(90deg, var(--dark-secondary) 25%, var(--dark-tertiary) 50%, var(--dark-secondary) 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
         }
 
-        #file-name-display {
-            margin-top: 1.5rem;
-            font-style: italic;
-            color: #ccc;
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
         }
 
-        .upload-btn {
-            background-color: var(--accent-color);
-            color: #121212;
-            border: none;
-            padding: 1rem 2rem;
-            font-size: 1rem;
-            font-weight: 600;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            display: block;
-            width: 100%;
-            margin-top: 2rem;
-        }
-        
-        .upload-btn:disabled {
-            background-color: #555;
-            cursor: not-allowed;
-        }
-
-        #upload-progress-container {
-            width: 100%;
-            background-color: var(--secondary-color);
-            border-radius: 8px;
-            margin-top: 1.5rem;
-            display: none;
-        }
-
-        #upload-progress-bar {
-            width: 0%;
-            height: 10px;
-            background-color: var(--accent-color);
-            border-radius: 8px;
-            transition: width 0.3s ease;
-        }
-        #upload-status {
-            text-align: center;
-            margin-top: 10px;
-            font-size: 0.9rem;
-        }
-
-        /* Halaman Statistik */
-        #stats-container {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 2rem;
-        }
-        
-        @media (min-width: 768px) {
-            #stats-container {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        .stat-card {
-            background-color: var(--primary-color);
-            padding: 2rem;
+        /* Gallery Item yang diperbaiki */
+        .gallery-item {
+            position: relative;
+            overflow: hidden;
             border-radius: 12px;
-            border: 1px solid #333;
+            background: var(--dark-secondary);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .stat-card h3 {
-            font-size: 1.3rem;
-            font-weight: 500;
-            margin-bottom: 1.5rem;
-            text-align: center;
+        .gallery-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(139, 92, 246, 0.15);
         }
 
-        /* Ringkasan Teks */
-        #file-summary {
-            list-style: none;
-            padding: 0;
+        .gallery-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        #file-summary li {
+
+        .gallery-item:hover img {
+            transform: scale(1.05);
+        }
+
+        .gallery-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
             display: flex;
-            justify-content: space-between;
-            font-size: 1rem;
-            padding: 0.8rem 0;
-            border-bottom: 1px solid #333;
-        }
-        #file-summary li:last-child {
-            border-bottom: none;
-        }
-        #file-summary span:first-child {
-            font-weight: 500;
-        }
-        #file-summary span:last-child {
-            color: #ccc;
+            align-items: flex-end;
+            padding: 1rem;
         }
 
-        /* Footer */
-        footer {
-            background-color: var(--primary-color);
-            text-align: center;
+        .gallery-item:hover .gallery-overlay {
+            opacity: 1;
+        }
+
+        /* Statistik Card yang diperbaiki */
+        .stat-card {
+            background: var(--dark-primary);
+            border: 1px solid rgba(139, 92, 246, 0.1);
+            border-radius: 16px;
             padding: 1.5rem;
-            font-size: 0.9rem;
-            color: #888;
-            margin-top: 2rem;
-            border-top: 1px solid #333;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
 
-        /* Loader */
-        .loader-container {
-            display: none;
-            position: fixed;
+        .stat-card::before {
+            content: '';
+            position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 9998;
-            justify-content: center;
-            align-items: center;
-        }
-        .loader-container.active {
-            display: flex;
-        }
-        .loader {
-            border: 6px solid #f3f3f3;
-            border-top: 6px solid var(--accent-color);
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-light));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
         }
 
+        .stat-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.1);
+            border-color: rgba(139, 92, 246, 0.3);
+        }
+
+        /* Progress Bar yang diperbaiki */
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring-circle {
+            transition: stroke-dashoffset 0.5s ease;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--dark-primary);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6);
+        }
+
+        /* File type badges */
+        .file-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .file-badge.image { background: rgba(59, 130, 246, 0.1); color: #60a5fa; }
+        .file-badge.video { background: rgba(239, 68, 68, 0.1); color: #f87171; }
+        .file-badge.audio { background: rgba(168, 85, 247, 0.1); color: #c084fc; }
+        .file-badge.document { background: rgba(34, 197, 94, 0.1); color: #4ade80; }
     </style>
 </head>
-<body>
-
-    <!-- SVG Ikon untuk Download dan File -->
-    <svg style="display:none;">
-        <symbol id="icon-download" viewBox="0 0 24 24">
-            <path fill="currentColor" d="M19.35 10.04C18.67 6.59 15.64 4 12 4C9.11 4 6.6 5.64 5.35 8.04C2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5c0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5l-5-5h3V9h4v4h3z"/>
-        </symbol>
-        <symbol id="icon-file" viewBox="0 0 24 24">
-            <path fill="currentColor" d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/>
-        </symbol>
-        <symbol id="icon-music" viewBox="0 0 24 24">
-             <path fill="currentColor" d="M12 3v10.55c-.59-.34-1.27-.55-2-.55c-2.21 0-4 1.79-4 4s1.79 4 4 4s4-1.79 4-4V7h4V3h-6z"/>
-        </symbol>
-        <symbol id="icon-video" viewBox="0 0 24 24">
-             <path fill="currentColor" d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
-        </symbol>
-    </svg>
-
+<body class="dark">
     <!-- Halaman Autentikasi (Dihilangkan, tapi kita biarkan div-nya agar tidak error jika ada referensi sisa) -->
     <div id="auth-page" style="display: none;"></div>
 
     <!-- Konten Aplikasi Utama -->
     <main id="app-content">
-        <nav>
-            <a href="#gallery" id="nav-gallery" class="nav-link active">Galeri</a>
-            <a href="#upload" id="nav-upload" class="nav-link">Unggah</a>
-            <a href="#stats" id="nav-stats" class="nav-link">Statistik</a>
+        <!-- Navigasi yang diperbaiki -->
+        <nav class="bg-dark-primary/80 backdrop-blur-lg border-b border-gray-800/50 px-4 py-4 md:px-8 flex justify-between items-center sticky top-0 z-50">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-accent to-accent-light rounded-lg flex items-center justify-center">
+                    <i class="fas fa-cloud text-white"></i>
+                </div>
+                <h1 class="text-xl font-bold bg-gradient-to-r from-accent to-accent-light bg-clip-text text-transparent">Private Space</h1>
+            </div>
+            <div class="flex gap-2">
+                <a href="#gallery" id="nav-gallery" class="nav-link px-4 py-2 rounded-lg transition-all duration-300 font-medium bg-accent/10 text-accent">Galeri</a>
+                <a href="#upload" id="nav-upload" class="nav-link px-4 py-2 rounded-lg transition-all duration-300 font-medium text-gray-400 hover:text-white hover:bg-dark-secondary">Unggah</a>
+                <a href="#stats" id="nav-stats" class="nav-link px-4 py-2 rounded-lg transition-all duration-300 font-medium text-gray-400 hover:text-white hover:bg-dark-secondary">Statistik</a>
+            </div>
         </nav>
 
-        <div class="page-container">
-            <!-- Halaman Galeri -->
+        <div class="page-container flex-grow p-4 md:p-8 max-w-7xl mx-auto w-full">
+            <!-- Halaman Galeri yang diperbaiki -->
             <section id="gallery-page" class="page active">
-                <div class="gallery-section">
-                    <h2>Foto</h2>
-                    <div class="grid-container" id="photos-grid">
-                        <!-- Konten foto diisi oleh JavaScript -->
-                    </div>
-                    <p id="empty-photos" class="empty-gallery" style="display: none;">Belum ada foto.</p>
+                <!-- Filter Tabs -->
+                <div class="flex flex-wrap gap-2 mb-6" data-aos="fade-up">
+                    <button class="filter-btn px-4 py-2 rounded-lg bg-accent text-white font-medium transition-all" data-filter="all">Semua</button>
+                    <button class="filter-btn px-4 py-2 rounded-lg bg-dark-secondary text-gray-400 hover:text-white font-medium transition-all" data-filter="photos">Foto</button>
+                    <button class="filter-btn px-4 py-2 rounded-lg bg-dark-secondary text-gray-400 hover:text-white font-medium transition-all" data-filter="videos">Video</button>
+                    <button class="filter-btn px-4 py-2 rounded-lg bg-dark-secondary text-gray-400 hover:text-white font-medium transition-all" data-filter="music">Musik</button>
+                    <button class="filter-btn px-4 py-2 rounded-lg bg-dark-secondary text-gray-400 hover:text-white font-medium transition-all" data-filter="files">Dokumen</button>
                 </div>
-                <div class="gallery-section">
-                    <h2>Video</h2>
-                    <div class="grid-container" id="videos-grid">
-                        <!-- Konten video diisi oleh JavaScript -->
-                    </div>
-                    <p id="empty-videos" class="empty-gallery" style="display: none;">Belum ada video.</p>
+
+                <!-- Gallery Grid -->
+                <div id="gallery-container" class="masonry-grid">
+                    <!-- Skeleton loaders -->
+                    <div class="skeleton masonry-item h-48 rounded-xl"></div>
+                    <div class="skeleton masonry-item h-64 rounded-xl"></div>
+                    <div class="skeleton masonry-item h-56 rounded-xl"></div>
+                    <div class="skeleton masonry-item h-72 rounded-xl"></div>
+                    <div class="skeleton masonry-item h-52 rounded-xl"></div>
+                    <div class="skeleton masonry-item h-60 rounded-xl"></div>
                 </div>
-                <div class="gallery-section">
-                    <h2>Musik</h2>
-                    <div class="grid-container" id="music-grid">
-                        <!-- Konten musik diisi oleh JavaScript -->
-                    </div>
-                    <p id="empty-music" class="empty-gallery" style="display: none;">Belum ada musik.</p>
-                </div>
-                <div class="gallery-section">
-                    <h2>File Lain</h2>
-                    <div class="grid-container" id="files-grid">
-                        <!-- Konten file diisi oleh JavaScript -->
-                    </div>
-                    <p id="empty-files" class="empty-gallery" style="display: none;">Belum ada file lain.</p>
+
+                <!-- Empty State -->
+                <div id="empty-gallery" class="hidden text-center py-16">
+                    <i class="fas fa-folder-open text-6xl text-gray-600 mb-4"></i>
+                    <h3 class="text-xl font-medium text-gray-400 mb-2">Belum ada file</h3>
+                    <p class="text-gray-500">Mulai dengan mengunggah file pertama Anda</p>
                 </div>
             </section>
 
-            <!-- Halaman Upload -->
+            <!-- Halaman Upload yang diperbaiki -->
             <section id="upload-page" class="page">
-                <h2>Unggah File Baru</h2>
-                <form id="upload-form">
-                    <div id="drop-zone">
-                        <p>Tarik & lepas file di sini, atau klik untuk memilih file</p>
-                        <input type="file" id="file-input" required>
-                    </div>
-                    <div id="file-name-display">Tidak ada file dipilih.</div>
-                    <!-- Progress bar tidak lagi digunakan untuk upload XHR, tapi kita biarkan untuk status simpel -->
-                    <div id="upload-progress-container" style="display:none;"> 
-                         <div id="upload-progress-bar" style="width: 100%; background-color: var(--accent-color);"></div>
-                    </div>
-                    <div id="upload-status"></div>
-                    <button type="submit" id="upload-btn" class="upload-btn" disabled>Unggah</button>
-                </form>
+                <div class="max-w-3xl mx-auto" data-aos="fade-up">
+                    <h2 class="text-3xl font-bold mb-2 bg-gradient-to-r from-accent to-accent-light bg-clip-text text-transparent">Unggah File</h2>
+                    <p class="text-gray-400 mb-8">Bagikan momen Anda dengan aman dan privat</p>
+                    
+                    <form id="upload-form" class="bg-dark-primary rounded-2xl p-8 border border-gray-800">
+                        <div id="drop-zone" class="border-2 border-dashed border-gray-700 rounded-xl p-12 text-center cursor-pointer hover:border-accent transition-all duration-300 group">
+                            <div class="transition-transform duration-300 group-hover:scale-110">
+                                <i class="fas fa-cloud-upload-alt text-6xl mb-4 text-gray-500 group-hover:text-accent"></i>
+                            </div>
+                            <p class="text-lg text-gray-400 mb-2">Tarik & lepas file di sini</p>
+                            <p class="text-sm text-gray-500 mb-4">atau</p>
+                            <button type="button" class="px-6 py-2 bg-accent text-white rounded-lg hover:bg-accent-light transition-all">
+                                Pilih File
+                            </button>
+                            <input type="file" id="file-input" required class="hidden">
+                        </div>
+                        
+                        <div id="file-preview" class="hidden mt-6 p-4 bg-dark-secondary rounded-lg">
+                            <div class="flex items-center gap-4">
+                                <div id="file-icon" class="w-12 h-12 bg-accent/20 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-file text-accent"></i>
+                                </div>
+                                <div class="flex-grow">
+                                    <p id="file-name" class="font-medium"></p>
+                                    <p id="file-size" class="text-sm text-gray-400"></p>
+                                </div>
+                                <button type="button" id="remove-file" class="text-gray-400 hover:text-red-400">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="upload-progress" class="hidden mt-6">
+                            <div class="flex justify-between text-sm mb-2">
+                                <span>Mengunggah...</span>
+                                <span id="progress-percent">0%</span>
+                            </div>
+                            <div class="w-full bg-dark-secondary rounded-full h-2">
+                                <div id="progress-bar" class="bg-gradient-to-r from-accent to-accent-light h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <button type="submit" id="upload-btn" class="w-full mt-6 py-3 bg-gradient-to-r from-accent to-accent-light text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-accent/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            <i class="fas fa-upload mr-2"></i>Unggah File
+                        </button>
+                    </form>
+                </div>
             </section>
 
-            <!-- Halaman Statistik -->
+            <!-- Halaman Statistik yang diperbaiki -->
             <section id="stats-page" class="page">
-                <h2>Statistik Penyimpanan</h2>
-                <div id="stats-container">
-                    <div class="stat-card">
-                        <h3>Penyimpanan Drive</h3>
-                        <canvas id="storage-chart"></canvas>
-                        <p id="storage-text" style="text-align: center; margin-top: 1rem;"></p>
+                <div class="mb-8" data-aos="fade-up">
+                    <h2 class="text-3xl font-bold mb-2 bg-gradient-to-r from-accent to-accent-light bg-clip-text text-transparent">Statistik Penyimpanan</h2>
+                    <p class="text-gray-400">Pantau penggunaan storage Anda secara real-time</p>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="stat-card" data-aos="fade-up" data-aos-delay="100">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-image text-blue-400"></i>
+                            </div>
+                            <span class="text-2xl font-bold" id="photo-count">0</span>
+                        </div>
+                        <p class="text-gray-400">Foto</p>
+                        <p class="text-sm text-gray-500 mt-1" id="photo-size">0 MB</p>
                     </div>
-                    <div class="stat-card">
-                        <h3>Total File</h3>
-                        <canvas id="file-type-chart"></canvas>
+
+                    <div class="stat-card" data-aos="fade-up" data-aos-delay="200">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 bg-red-500/20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-video text-red-400"></i>
+                            </div>
+                            <span class="text-2xl font-bold" id="video-count">0</span>
+                        </div>
+                        <p class="text-gray-400">Video</p>
+                        <p class="text-sm text-gray-500 mt-1" id="video-size">0 MB</p>
                     </div>
-                    <div class="stat-card" style="grid-column: 1 / -1;">
-                        <h3>Rangkuman Ukuran File</h3>
-                        <ul id="file-summary">
-                            <!-- Diisi oleh JavaScript -->
-                        </ul>
+
+                    <div class="stat-card" data-aos="fade-up" data-aos-delay="300">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-music text-purple-400"></i>
+                            </div>
+                            <span class="text-2xl font-bold" id="music-count">0</span>
+                        </div>
+                        <p class="text-gray-400">Musik</p>
+                        <p class="text-sm text-gray-500 mt-1" id="music-size">0 MB</p>
+                    </div>
+
+                    <div class="stat-card" data-aos="fade-up" data-aos-delay="400">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-file text-green-400"></i>
+                            </div>
+                            <span class="text-2xl font-bold" id="file-count">0</span>
+                        </div>
+                        <p class="text-gray-400">Dokumen</p>
+                        <p class="text-sm text-gray-500 mt-1" id="file-size-total">0 MB</p>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <div class="stat-card" data-aos="fade-up" data-aos-delay="500">
+                        <h3 class="text-xl font-semibold mb-6 flex items-center gap-2">
+                            <i class="fas fa-chart-pie text-accent"></i>
+                            Distribusi File
+                        </h3>
+                        <div class="relative h-64">
+                            <canvas id="file-type-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="stat-card" data-aos="fade-up" data-aos-delay="600">
+                        <h3 class="text-xl font-semibold mb-6 flex items-center gap-2">
+                            <i class="fas fa-hdd text-accent"></i>
+                            Penggunaan Storage
+                        </h3>
+                        <div class="relative h-64 flex items-center justify-center">
+                            <div class="relative">
+                                <svg class="progress-ring" width="180" height="180">
+                                    <circle cx="90" cy="90" r="80" stroke="#2f2f2f" stroke-width="12" fill="none"/>
+                                    <circle id="progress-circle" class="progress-ring-circle" cx="90" cy="90" r="80" stroke="url(#gradient)" stroke-width="12" fill="none" stroke-dasharray="502" stroke-dashoffset="502"/>
+                                    <defs>
+                                        <linearGradient id="gradient">
+                                            <stop offset="0%" stop-color="#8b5cf6"/>
+                                            <stop offset="100%" stop-color="#a78bfa"/>
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                    <span class="text-3xl font-bold" id="storage-percent">0%</span>
+                                    <span class="text-sm text-gray-400">Terpakai</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-6 space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-400">Terpakai</span>
+                                <span id="storage-used">0 GB</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-400">Tersedia</span>
+                                <span id="storage-free">0 GB</span>
+                            </div>
+                            <div class="flex justify-between text-sm font-semibold">
+                                <span>Total</span>
+                                <span id="storage-total">0 GB</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Files -->
+                <div class="stat-card" data-aos="fade-up" data-aos-delay="700">
+                    <h3 class="text-xl font-semibold mb-6 flex items-center gap-2">
+                        <i class="fas fa-clock text-accent"></i>
+                        File Terbaru
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b border-gray-800">
+                                    <th class="text-left pb-3 text-gray-400">Nama File</th>
+                                    <th class="text-center pb-3 text-gray-400">Tipe</th>
+                                    <th class="text-right pb-3 text-gray-400">Ukuran</th>
+                                    <th class="text-right pb-3 text-gray-400">Tanggal</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recent-files">
+                                <!-- Diisi oleh JavaScript -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </section>
         </div>
 
-        <footer>
-            <p>&copy; 2025 Our Private Space. Dibuat Menggunakan Skils dan Niat</p>
+        <footer class="bg-dark-primary/80 backdrop-blur-lg border-t border-gray-800/50 text-center py-6 text-sm text-gray-500">
+            <p>&copy; 2025 Private Space. Built with <i class="fas fa-heart text-red-500"></i> using modern web technologies</p>
         </footer>
     </main>
     
-    <!-- Loader Overlay -->
-    <div id="loader" class="loader-container">
-        <div class="loader"></div>
+    <!-- Floating Action Button -->
+    <button id="fab-upload" class="fab hidden">
+        <i class="fas fa-plus"></i>
+    </button>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <i id="toast-icon" class="fas fa-check-circle text-green-400"></i>
+        <span id="toast-message">Success!</span>
     </div>
 
     <!-- 
       ==================================================================
       == SCRIPT APLIKASI UTAMA (Versi Apps Script)
-      == Jauh lebih sederhana! Tidak ada GAPI/GIS/OAuth.
       ==================================================================
     -->
     <script>
         // --- KONFIGURASI (WAJIB DIISI!) ---
-        // <-- PASTE URL DEPLOYMENT APPS SCRIPT ANDA DI SINI
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx3LSD0rEz3XqoZmEgvS8btTh_R2IQ8DYSppnBweQP1VERDllo-Het2L_9CVAfIjbHa1g/exec"; 
         // ------------------------------------
 
         // Cek Konfigurasi
         if (!APPS_SCRIPT_URL) {
-            alert("MOHON LENGKAPI KONFIGURASI PADA FILE index.html (APPS_SCRIPT_URL)");
+            showToast("Error: Konfigurasi tidak lengkap", "error");
             document.body.innerHTML = `
-                <div style="padding: 2rem; text-align: center; color: white; font-family: sans-serif;">
-                    <h1>Error: Konfigurasi Tidak Lengkap</h1>
-                    <p style="font-size: 1.2rem;">Harap buka file <strong>index.html</strong> dan isi nilai <strong>APPS_SCRIPT_URL</strong> di dalam variabel CONFIG pada blok &lt;script&gt;.</p>
-                    <p>Anda akan mendapatkan URL ini setelah men-deploy file <strong>Code.gs</strong> sebagai Web App.</p>
+                <div class="p-8 text-center text-white font-sans">
+                    <h1 class="text-2xl mb-4">Error: Konfigurasi Tidak Lengkap</h1>
+                    <p class="text-lg">Harap lengkapi APPS_SCRIPT_URL</p>
                 </div>
             `;
-            // Hentikan eksekusi script
             throw new Error("Konfigurasi aplikasi tidak lengkap.");
         }
 
-
-        let storageChart = null;
+        // Variabel Global
         let fileTypeChart = null;
         let currentFile = null;
+        let allFiles = [];
+        let currentFilter = 'all';
         
         // Variabel untuk menyimpan warna CSS
         let accentColor, textColor, secondaryColor;
@@ -556,32 +570,32 @@
         const appContent = document.getElementById('app-content');
         const navLinks = document.querySelectorAll('.nav-link');
         const pages = document.querySelectorAll('.page');
-        const loader = document.getElementById('loader');
+        const fabUpload = document.getElementById('fab-upload');
         
         // Elemen Upload
         const uploadForm = document.getElementById('upload-form');
         const dropZone = document.getElementById('drop-zone');
         const fileInput = document.getElementById('file-input');
-        const fileNameDisplay = document.getElementById('file-name-display');
+        const filePreview = document.getElementById('file-preview');
+        const fileName = document.getElementById('file-name');
+        const fileSize = document.getElementById('file-size');
+        const fileIcon = document.getElementById('file-icon');
+        const removeFileBtn = document.getElementById('remove-file');
         const uploadBtn = document.getElementById('upload-btn');
-        const progressContainer = document.getElementById('upload-progress-container');
-        const progressBar = document.getElementById('upload-progress-bar');
-        const uploadStatus = document.getElementById('upload-status');
+        const uploadProgress = document.getElementById('upload-progress');
+        const progressBar = document.getElementById('progress-bar');
+        const progressPercent = document.getElementById('progress-percent');
 
         // Elemen Galeri
-        const grids = {
-            photos: document.getElementById('photos-grid'),
-            videos: document.getElementById('videos-grid'),
-            music: document.getElementById('music-grid'),
-            files: document.getElementById('files-grid')
-        };
-        const emptyMessages = {
-            photos: document.getElementById('empty-photos'),
-            videos: document.getElementById('empty-videos'),
-            music: document.getElementById('empty-music'),
-            files: document.getElementById('empty-files')
-        };
+        const galleryContainer = document.getElementById('gallery-container');
+        const emptyGallery = document.getElementById('empty-gallery');
+        const filterBtns = document.querySelectorAll('.filter-btn');
 
+        // --- Inisialisasi AOS Animation ---
+        AOS.init({
+            duration: 800,
+            once: true
+        });
 
         // --- Navigasi Halaman ---
         navLinks.forEach(link => {
@@ -602,132 +616,178 @@
                 page.classList.toggle('active', page.id === pageId);
             });
             navLinks.forEach(link => {
-                link.classList.toggle('active', link.hash === `#${pageId.replace('-page', '')}`);
+                const isActive = link.hash === `#${pageId.replace('-page', '')}`;
+                link.classList.toggle('bg-accent/10', isActive);
+                link.classList.toggle('text-accent', isActive);
+                link.classList.toggle('text-gray-400', !isActive);
+                link.classList.toggle('hover:text-white', !isActive);
             });
+
+            // Show/hide FAB
+            fabUpload.classList.toggle('hidden', pageId === 'upload-page');
         }
+
+        // --- Filter Gallery ---
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const filter = btn.dataset.filter;
+                currentFilter = filter;
+                
+                // Update button states
+                filterBtns.forEach(b => {
+                    b.classList.toggle('bg-accent', b === btn);
+                    b.classList.toggle('text-white', b === btn);
+                    b.classList.toggle('bg-dark-secondary', b !== btn);
+                    b.classList.toggle('text-gray-400', b !== btn);
+                });
+                
+                renderGallery();
+            });
+        });
 
         // --- Logika Google Drive (via Apps Script) ---
         
-        function showLoader(show) {
-            loader.classList.toggle('active', show);
-        }
-
         async function loadDriveData() {
-            showLoader(true);
             try {
-                // Panggil Apps Script untuk data
-                const response = await fetch(APPS_SCRIPT_URL + '?action=getDriveData');
+                // Tampilkan skeleton loader
+                if (document.getElementById('gallery-page').classList.contains('active')) {
+                    showSkeletonLoader();
+                }
+                
+                // Panggil Apps Script untuk data dengan timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 detik timeout
+                
+                const response = await fetch(APPS_SCRIPT_URL + '?action=getDriveData', {
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
+                
                 const data = await response.json();
                 
                 if (data.error) {
                     throw new Error(data.error);
                 }
 
-                renderGallery(data.files);
+                allFiles = data.files || { photos: [], videos: [], music: [], files: [] };
+                
+                renderGallery();
                 renderStatistics(data.files, data.quota);
 
             } catch (error) {
                 console.error("Error loading Drive data:", error);
-                alert("Gagal memuat data dari Google Drive: " + error.message);
-            } finally {
-                showLoader(false);
+                if (error.name === 'AbortError') {
+                    showToast("Timeout - Coba lagi", "error");
+                } else {
+                    showToast("Gagal memuat data: " + error.message, "error");
+                }
             }
         }
 
-        // --- Render Tampilan (SAMA SEPERTI SEBELUMNYA) ---
+        function showSkeletonLoader() {
+            galleryContainer.innerHTML = `
+                <div class="skeleton masonry-item h-48 rounded-xl"></div>
+                <div class="skeleton masonry-item h-64 rounded-xl"></div>
+                <div class="skeleton masonry-item h-56 rounded-xl"></div>
+                <div class="skeleton masonry-item h-72 rounded-xl"></div>
+                <div class="skeleton masonry-item h-52 rounded-xl"></div>
+                <div class="skeleton masonry-item h-60 rounded-xl"></div>
+            `;
+        }
 
-        function renderGallery(categories) {
-            for (const key in categories) {
-                const grid = grids[key];
-                const emptyMsg = emptyMessages[key];
-                const files = categories[key];
+        // --- Render Tampilan ---
+        function renderGallery() {
+            const filesToShow = currentFilter === 'all' 
+                ? [...allFiles.photos, ...allFiles.videos, ...allFiles.music, ...allFiles.files]
+                : allFiles[currentFilter] || [];
+            
+            if (filesToShow.length === 0) {
+                galleryContainer.innerHTML = '';
+                emptyGallery.classList.remove('hidden');
+                return;
+            }
+            
+            emptyGallery.classList.add('hidden');
+            galleryContainer.innerHTML = '';
+            
+            filesToShow.forEach((file, index) => {
+                const item = document.createElement('div');
+                item.className = 'masonry-item';
+                item.setAttribute('data-aos', 'fade-up');
+                item.setAttribute('data-aos-delay', (index * 50).toString());
                 
-                grid.innerHTML = ''; // Kosongkan grid
+                const isImage = file.mimeType.startsWith('image/');
+                const type = isImage ? 'photos' : 
+                           file.mimeType.startsWith('video/') ? 'videos' :
+                           file.mimeType.startsWith('audio/') ? 'music' : 'files';
                 
-                if (files.length === 0) {
-                    emptyMsg.style.display = 'block';
-                    grid.style.display = 'none';
-                    continue;
-                }
-                
-                emptyMsg.style.display = 'none';
-                grid.style.display = 'grid';
-
-                files.forEach(file => {
-                    const item = document.createElement('div');
-                    item.className = 'grid-item';
-                    
-                    let content = '';
-                    let icon = 'file'; // default icon
-                    
-                    if (key === 'photos') {
-                        // thumbnailLink dari Apps Script
-                        content = `<img src="${file.thumbnailUrl}" alt="${file.name}" loading="lazy">`;
-                    } else {
-                         if (key === 'videos') icon = 'video';
-                         if (key === 'music') icon = 'music';
-                         
-                         content = `
-                            <div class="file-icon">
-                                <svg><use href="#icon-${icon}"></use></svg>
-                                <span class="file-name">${file.name}</span>
-                            </div>
-                         `;
-                    }
-                    
-                    // tambahkan overlay
+                if (isImage) {
                     item.innerHTML = `
-                        ${content}
-                        <div class="grid-overlay">
-                            <span class="grid-overlay-filename" title="${file.name}">${file.name}</span>
-                            <a href="${file.downloadUrl}" class="download-btn" title="Download" target="_blank" rel="noopener noreferrer">
-                                <svg><use href="#icon-download"></use></svg>
-                            </a>
+                        <div class="gallery-item">
+                            <img src="${file.thumbnailUrl}" alt="${file.name}" loading="lazy">
+                            <div class="gallery-overlay">
+                                <div class="flex justify-between items-end w-full">
+                                    <div>
+                                        <p class="font-medium truncate">${file.name}</p>
+                                        <p class="text-sm opacity-75">${formatFileSize(file.size)}</p>
+                                    </div>
+                                    <a href="${file.downloadUrl}" class="w-10 h-10 bg-white/20 backdrop-blur rounded-full flex items-center justify-center hover:bg-white/30 transition-all" title="Download" target="_blank">
+                                        <i class="fas fa-download text-white"></i>
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     `;
-                    grid.appendChild(item);
-                });
-            }
+                } else {
+                    const icon = type === 'videos' ? 'film' : 
+                                type === 'music' ? 'music' : 'file';
+                    const color = type === 'videos' ? 'red' : 
+                                 type === 'music' ? 'purple' : 'green';
+                    
+                    item.innerHTML = `
+                        <div class="gallery-item p-6">
+                            <div class="flex flex-col items-center justify-center h-full text-center">
+                                <i class="fas fa-${icon} text-4xl text-${color}-400 mb-4"></i>
+                                <p class="font-medium truncate w-full">${file.name}</p>
+                                <p class="text-sm text-gray-400 mt-2">${formatFileSize(file.size)}</p>
+                                <a href="${file.downloadUrl}" class="mt-4 px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent-light transition-all" target="_blank">
+                                    <i class="fas fa-download mr-2"></i>Download
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                galleryContainer.appendChild(item);
+            });
+            
+            // Refresh AOS
+            AOS.refresh();
         }
 
         function renderStatistics(categories, quota) {
-             // --- Chart Penyimpanan (Doughnut) ---
-            const storageCtx = document.getElementById('storage-chart').getContext('2d');
-            const used = quota ? parseFloat(quota.usage) : 0;
-            const limit = quota ? parseFloat(quota.limit) : 1; // hindari pembagian dgn 0
-            const free = limit - used;
+            // Update stat cards dengan animasi
+            animateCounter('photo-count', categories.photos.length);
+            animateCounter('video-count', categories.videos.length);
+            animateCounter('music-count', categories.music.length);
+            animateCounter('file-count', categories.files.length);
             
-            const usedGB = (used / (1024**3)).toFixed(2);
-            // Cek jika limit -1 (Unlimited)
-            const limitGB = (limit === -1) ? "Unlimited" : (limit / (1024**3)).toFixed(2);
-            const storageText = (limit === -1) ? `Terpakai: ${usedGB} GB` : `Terpakai: ${usedGB} GB / ${limitGB} GB`;
-
-            document.getElementById('storage-text').textContent = storageText;
-
-            if (storageChart) storageChart.destroy();
-            storageChart = new Chart(storageCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Terpakai', 'Tersedia'],
-                    datasets: [{
-                        // Jika unlimited, buat seolah-olah penuh
-                        data: (limit === -1) ? [used, 1] : [used, free], 
-                        backgroundColor: [accentColor, secondaryColor], // Menggunakan warna dari CSS
-                        borderWidth: 0,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { labels: { color: textColor } } // Menggunakan warna dari CSS
-                    }
-                }
-            });
-
+            // Calculate sizes
+            const sizes = {};
+            for (const key in categories) {
+                sizes[key] = categories[key].reduce((acc, file) => acc + (parseInt(file.size) || 0), 0);
+            }
+            
+            document.getElementById('photo-size').textContent = formatFileSize(sizes.photos);
+            document.getElementById('video-size').textContent = formatFileSize(sizes.videos);
+            document.getElementById('music-size').textContent = formatFileSize(sizes.music);
+            document.getElementById('file-size-total').textContent = formatFileSize(sizes.files);
+            
             // --- Chart Tipe File (Pie) ---
             const fileTypeCtx = document.getElementById('file-type-chart').getContext('2d');
             const counts = {
@@ -739,59 +799,110 @@
 
             if (fileTypeChart) fileTypeChart.destroy();
             fileTypeChart = new Chart(fileTypeCtx, {
-                type: 'pie',
+                type: 'doughnut',
                 data: {
-                    labels: ['Foto', 'Video', 'Musik', 'File Lain'],
+                    labels: ['Foto', 'Video', 'Musik', 'Dokumen'],
                     datasets: [{
                         data: [counts.photos, counts.videos, counts.music, counts.files],
-                        backgroundColor: [accentColor, '#e74c3c', '#9b59b6', '#f1c40f'], // Gunakan accentColor
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(239, 68, 68, 0.8)',
+                            'rgba(168, 85, 247, 0.8)',
+                            'rgba(34, 197, 94, 0.8)'
+                        ],
+                        borderWidth: 0,
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { labels: { color: textColor } } // Menggunakan warna dari CSS
+                        legend: { 
+                            position: 'bottom',
+                            labels: { color: '#9ca3af', padding: 20 }
+                        }
                     }
                 }
             });
             
-            // --- Rangkuman Ukuran File ---
-            const summaryEl = document.getElementById('file-summary');
-            summaryEl.innerHTML = '';
-            const sizes = {};
-            for (const key in categories) {
-                sizes[key] = categories[key].reduce((acc, file) => acc + (parseInt(file.size) || 0), 0);
-            }
+            // --- Storage Progress ---
+            const used = quota ? parseFloat(quota.usage) : 0;
+            const limit = quota ? parseFloat(quota.limit) : 1;
+            const free = limit - used;
+            const percent = Math.min((used / limit) * 100, 100);
             
-            summaryEl.innerHTML = `
-                <li><span>Foto (${counts.photos} files)</span> <span>${formatFileSize(sizes.photos)}</span></li>
-                <li><span>Video (${counts.videos} files)</span> <span>${formatFileSize(sizes.videos)}</span></li>
-                <li><span>Musik (${counts.music} files)</span> <span>${formatFileSize(sizes.music)}</span></li>
-                <li><span>File Lain (${counts.files} files)</span> <span>${formatFileSize(sizes.files)}</span></li>
-            `;
+            // Update progress circle
+            const circle = document.getElementById('progress-circle');
+            const circumference = 2 * Math.PI * 80;
+            const offset = circumference - (percent / 100) * circumference;
+            circle.style.strokeDashoffset = offset;
+            
+            // Update text
+            document.getElementById('storage-percent').textContent = Math.round(percent) + '%';
+            document.getElementById('storage-used').textContent = formatFileSize(used);
+            document.getElementById('storage-free').textContent = formatFileSize(free);
+            document.getElementById('storage-total').textContent = limit === -1 ? 'Unlimited' : formatFileSize(limit);
+            
+            // --- Recent Files Table ---
+            const recentFilesEl = document.getElementById('recent-files');
+            const allRecentFiles = [
+                ...categories.photos.slice(0, 5),
+                ...categories.videos.slice(0, 5),
+                ...categories.music.slice(0, 5),
+                ...categories.files.slice(0, 5)
+            ].sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime)).slice(0, 10);
+            
+            if (allRecentFiles.length === 0) {
+                recentFilesEl.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-gray-500">Belum ada file</td></tr>';
+            } else {
+                recentFilesEl.innerHTML = allRecentFiles.map(file => {
+                    const type = file.mimeType.startsWith('image/') ? 'image' :
+                                file.mimeType.startsWith('video/') ? 'video' :
+                                file.mimeType.startsWith('audio/') ? 'audio' : 'document';
+                    
+                    return `
+                        <tr class="border-b border-gray-800/50 hover:bg-dark-secondary/50 transition-colors">
+                            <td class="py-3 truncate max-w-xs">${file.name}</td>
+                            <td class="py-3 text-center">
+                                <span class="file-badge ${type}">${type}</span>
+                            </td>
+                            <td class="py-3 text-right">${formatFileSize(file.size)}</td>
+                            <td class="py-3 text-right text-gray-400">${new Date(file.createdTime).toLocaleDateString('id-ID')}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
         }
         
-        // --- Logika Upload (BARU - via Apps Script) ---
+        // --- Logika Upload ---
         
         function setupUploadListeners() {
-            // Klik drop zone
-            dropZone.addEventListener('click', () => fileInput.click());
+            // FAB click
+            fabUpload.addEventListener('click', () => {
+                showPage('upload-page');
+            });
+            
+            // Drop zone click
+            dropZone.addEventListener('click', (e) => {
+                if (e.target.tagName !== 'BUTTON') {
+                    fileInput.click();
+                }
+            });
 
             // Drag events
             dropZone.addEventListener('dragover', (e) => {
                 e.preventDefault();
-                dropZone.classList.add('dragover');
+                dropZone.classList.add('border-accent', 'bg-accent/5');
             });
 
             dropZone.addEventListener('dragleave', (e) => {
                 e.preventDefault();
-                dropZone.classList.remove('dragover');
+                dropZone.classList.remove('border-accent', 'bg-accent/5');
             });
             
             dropZone.addEventListener('drop', (e) => {
                 e.preventDefault();
-                dropZone.classList.remove('dragover');
+                dropZone.classList.remove('border-accent', 'bg-accent/5');
                 if (e.dataTransfer.files.length > 0) {
                     handleFile(e.dataTransfer.files[0]);
                 }
@@ -804,6 +915,9 @@
                 }
             });
 
+            // Remove file
+            removeFileBtn.addEventListener('click', resetUploadForm);
+
             // Form submit
             uploadForm.addEventListener('submit', (e) => {
                 e.preventDefault();
@@ -815,34 +929,39 @@
         
         function handleFile(file) {
             currentFile = file;
-            fileNameDisplay.textContent = file.name;
+            
+            // Update preview
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            
+            // Update icon
+            const icon = file.type.startsWith('image/') ? 'image' :
+                        file.type.startsWith('video/') ? 'video' :
+                        file.type.startsWith('audio/') ? 'music' : 'file';
+            fileIcon.innerHTML = `<i class="fas fa-${icon} text-accent"></i>`;
+            
+            filePreview.classList.remove('hidden');
             uploadBtn.disabled = false;
         }
 
         function resetUploadForm() {
             currentFile = null;
-            fileInput.value = ''; // Reset file input
-            fileNameDisplay.textContent = 'Tidak ada file dipilih.';
+            fileInput.value = '';
+            filePreview.classList.add('hidden');
             uploadBtn.disabled = true;
-            progressContainer.style.display = 'none';
+            uploadProgress.classList.add('hidden');
             progressBar.style.width = '0%';
-            uploadStatus.textContent = '';
+            progressPercent.textContent = '0%';
         }
 
-        // FUNGSI UPLOAD YANG DIUBAH TOTAL
-        function uploadFile(file) {
+        async function uploadFile(file) {
             uploadBtn.disabled = true;
-            uploadStatus.textContent = 'Mempersiapkan file...';
-            // Tampilkan progress bar sebagai indikator 'sedang bekerja'
-            progressContainer.style.display = 'block';
-            progressBar.style.width = '100%'; 
+            uploadProgress.classList.remove('hidden');
             
             const reader = new FileReader();
-            reader.readAsDataURL(file); // Baca file sebagai Base64
+            reader.readAsDataURL(file);
             
             reader.onload = async () => {
-                uploadStatus.textContent = 'Mengunggah ke server...';
-                // Dapatkan data base64 saja, tanpa prefix
                 const fileData = reader.result.split(',')[1];
                 
                 const payload = {
@@ -853,71 +972,109 @@
                 };
 
                 try {
+                    // Simulate progress
+                    let progress = 0;
+                    const progressInterval = setInterval(() => {
+                        progress += Math.random() * 15;
+                        if (progress > 90) progress = 90;
+                        progressBar.style.width = progress + '%';
+                        progressPercent.textContent = Math.round(progress) + '%';
+                    }, 200);
+                    
                     const response = await fetch(APPS_SCRIPT_URL, {
                         method: 'POST',
                         body: JSON.stringify(payload),
                         headers: {
-                            'Content-Type': 'text/plain;charset=utf-8', // Apps Script doPost menerima ini
+                            'Content-Type': 'text/plain;charset=utf-8',
                         }
                     });
+                    
+                    clearInterval(progressInterval);
+                    progressBar.style.width = '100%';
+                    progressPercent.textContent = '100%';
                     
                     const result = await response.json();
 
                     if (result.status === 'success') {
-                        uploadStatus.textContent = 'Upload Selesai!';
+                        showToast('File berhasil diunggah!', 'success');
                         setTimeout(() => {
-                           resetUploadForm();
-                           // Refresh galeri jika sedang di halaman galeri
-                           if (document.getElementById('gallery-page').classList.contains('active')) {
-                                loadDriveData();
-                           }
+                            resetUploadForm();
+                            showPage('gallery-page');
+                            loadDriveData();
                         }, 1500);
                     } else {
-                        throw new Error(result.error || 'Upload gagal di server.');
+                        throw new Error(result.error || 'Upload gagal');
                     }
                 } catch (error) {
                     console.error("Error during upload:", error);
-                    uploadStatus.textContent = 'Upload Gagal: ' + error.message;
+                    showToast('Upload gagal: ' + error.message, 'error');
                     uploadBtn.disabled = false;
-                    progressBar.style.width = '0%'; // Sembunyikan progress bar lagi
                 }
-            };
-            
-            reader.onerror = () => {
-                console.error("Error reading file");
-                uploadStatus.textContent = 'Gagal membaca file.';
-                uploadBtn.disabled = false;
             };
         }
         
-        // --- Helper & Init ---
+        // --- Helper Functions ---
+        
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastIcon = document.getElementById('toast-icon');
+            const toastMessage = document.getElementById('toast-message');
+            
+            toastMessage.textContent = message;
+            
+            if (type === 'error') {
+                toastIcon.className = 'fas fa-exclamation-circle text-red-400';
+            } else {
+                toastIcon.className = 'fas fa-check-circle text-green-400';
+            }
+            
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function animateCounter(id, target) {
+            const element = document.getElementById(id);
+            const duration = 1000;
+            const step = target / (duration / 16);
+            let current = 0;
+            
+            const timer = setInterval(() => {
+                current += step;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(timer);
+                }
+                element.textContent = Math.round(current);
+            }, 16);
+        }
 
         function formatFileSize(bytes) {
             if (bytes === 0) return '0 B';
             const k = 1024;
             const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-            // Pastikan bytes adalah angka sebelum di-log
             const bytesNum = parseInt(bytes, 10);
             if (isNaN(bytesNum) || bytesNum === 0) return '0 B';
             const i = Math.floor(Math.log(bytesNum) / Math.log(k));
             return parseFloat((bytesNum / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
         
-        // Panggil setup listeners saat DOM siap
+        // --- Inisialisasi ---
         document.addEventListener('DOMContentLoaded', () => {
-            // Ambil CSS variables untuk digunakan di Chart.js
+            // Ambil CSS variables
             const rootStyles = getComputedStyle(document.documentElement);
             accentColor = rootStyles.getPropertyValue('--accent-color').trim();
             textColor = rootStyles.getPropertyValue('--text-color').trim();
             secondaryColor = rootStyles.getPropertyValue('--secondary-color').trim() || '#555';
             
-            // Setup listeners untuk upload
+            // Setup listeners
             setupUploadListeners();
             
-            // Muat data saat halaman pertama kali dibuka
+            // Muat data awal
             loadDriveData();
         });
-
     </script>
 </body>
 </html>
