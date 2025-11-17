@@ -638,7 +638,7 @@
     <script>
         // --- KONFIGURASI (WAJIB DIISI!) ---
         // PASTIKAN ANDA MENGISI URL DEPLOYMENT APPS SCRIPT ANDA DI SINI
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzjMeA3l-C5W8gUtz9NOZYr5JjGQcMtIOYAbA-ACddbNCB85KQeveWRP6hgFtDZk_lG/exec"; 
+        const APPS_SCRIPT_URL = ""; 
         // ------------------------------------
 
         // Cek Konfigurasi
@@ -813,7 +813,18 @@
                 const data = await response.json();
                 
                 if (data.error) {
-                    throw new Error(data.error);
+                    // Cek jika error-nya karena ID Folder belum diatur
+                    if (data.error.includes("ID_FOLDER_PENYIMPANAN belum diatur")) {
+                        showToast("Error: ID Folder belum diatur di Code.gs", "error");
+                        document.body.innerHTML = `
+                            <div class="p-8 text-center text-white font-sans">
+                                <h1 class="text-2xl mb-4">Error: Konfigurasi Sisi Server Tidak Lengkap</h1>
+                                <p class="text-lg">Harap salin ID Folder Google Drive Anda dan tempel ke file <code>Code.gs</code> di baris ke-3.</p>
+                            </div>
+                        `;
+                    } else {
+                        throw new Error(data.error);
+                    }
                 }
 
                 allFiles = data.files || { photos: [], videos: [], music: [], files: [] };
@@ -870,9 +881,13 @@
                            file.mimeType.startsWith('audio/') ? 'music' : 'files';
                 
                 if (isImage) {
+                    // ==================================================================
+                    // PERBAIKAN #2: Menambahkan referrerpolicy="no-referrer"
+                    // Ini adalah perbaikan untuk keamanan browser
+                    // ==================================================================
                     item.innerHTML = `
                         <div class="gallery-item">
-                            <img src="${file.thumbnailUrl}" alt="${file.name}" loading="lazy" class="aspect-[3/4] object-cover">
+                            <img src="${file.thumbnailUrl}" alt="${file.name}" loading="lazy" class="aspect-[3/4] object-cover" referrerpolicy="no-referrer">
                             <div class="gallery-overlay">
                                 <div class="flex justify-between items-end w-full">
                                     <div class="min-w-0">
@@ -887,6 +902,7 @@
                         </div>
                     `;
                 } else {
+                    // Dokumen/video/dll tidak terpengaruh
                     const icon = type === 'videos' ? 'film' : 
                                 type === 'music' ? 'music' : 'file';
                     const color = type === 'videos' ? 'red' : 
@@ -969,11 +985,10 @@
             });
             
             // --- Storage Progress ---
-            // 'quota.limit' bisa jadi -1 (unlimited) atau 0 jika error
             const used = quota ? parseFloat(quota.usage) : 0;
-            const limit = (quota && quota.limit > 0) ? parseFloat(quota.limit) : (used > 0 ? used : 1); // Jika limit tidak ada, jadikan 'used' sebagai 100%
+            const limit = (quota && quota.limit > 0) ? parseFloat(quota.limit) : (used > 0 ? used : 1); 
             const free = (quota && quota.limit > 0) ? limit - used : 0;
-            const percent = (limit <= 0) ? 0 : Math.min((used / limit) * 100, 100);
+            const percent = (limit <= 0 || used <= 0) ? 0 : Math.min((used / limit) * 100, 100);
             
             // Update progress circle
             const circle = document.getElementById('progress-circle');
@@ -985,7 +1000,6 @@
             document.getElementById('storage-percent').textContent = Math.round(percent) + '%';
             document.getElementById('storage-used').textContent = formatFileSize(used);
     
-            // Tampilkan "Unlimited" atau "N/A" jika limit tidak ada/error
             if (quota.limit === -1 || quota.limit === 0) {
                 document.getElementById('storage-free').textContent = "N/A";
                 document.getElementById('storage-total').textContent = "N/A";
@@ -1149,15 +1163,12 @@
                     if (result.status === 'success') {
                         showToast('File berhasil diunggah!', 'success');
                         
-                        // ==================================================================
-                        // PERBAIKAN: Mengubah delay dari 1500ms ke 3000ms
-                        // Memberi waktu Google Drive memproses thumbnail
-                        // ==================================================================
+                        // Delay 3 detik
                         setTimeout(() => {
                             resetUploadForm();
                             showPage('gallery-page');
                             loadDriveData();
-                        }, 3000); // <-- DIUBAH JADI 3 DETIK
+                        }, 3000); 
                     } else {
                         throw new Error(result.error || 'Upload gagal');
                     }
@@ -1242,4 +1253,5 @@
     </script>
 </body>
 </html>
+
 
