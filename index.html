@@ -53,10 +53,6 @@
                             '70%': { transform: 'scale(0.9)' },
                             '100%': { transform: 'scale(1)', opacity: '1' }
                         },
-                        slideInRight: {
-                            '0%': { transform: 'translateX(100%)' },
-                            '100%': { transform: 'translateX(0)' }
-                        },
                         slideOutRight: {
                             '0%': { transform: 'translateX(0)' },
                             '100%': { transform: 'translateX(100%)' }
@@ -117,30 +113,30 @@
         }
 
         /* * ===============================================
-         * == GRID KECIL (3 KOLOM DI HP)
+         * == PERUBAHAN V9: GRID KECIL (4 KOLOM DI HP)
          * ===============================================
         */
         .masonry-grid {
-            column-count: 3; /* 3 kolom di mobile (grid kecil) */
-            column-gap: 0.5rem; /* jarak lebih rapat */
+            column-count: 4; /* UBAH: jadi 4 kolom di mobile (super kecil) */
+            column-gap: 0.5rem; /* jarak rapat */
         }
 
         @media (min-width: 640px) {
             .masonry-grid {
-                column-count: 4; /* 4 di tablet */
+                column-count: 5; /* 5 di tablet */
                 column-gap: 0.75rem;
             }
         }
 
         @media (min-width: 1024px) {
             .masonry-grid {
-                column-count: 5; /* 5 di desktop */
+                column-count: 6; /* 6 di desktop */
             }
         }
 
         .masonry-item {
             break-inside: avoid;
-            margin-bottom: 0.5rem; /* jarak lebih rapat */
+            margin-bottom: 0.5rem; /* jarak rapat */
         }
         /* =============================================== */
 
@@ -406,19 +402,13 @@
             <!-- Halaman Galeri -->
             <section id="gallery-page" class="page active">
                 
-                <!-- 
-                  * ===============================================
-                  * == PERUBAHAN: Tombol "Semua" dihapus ==
-                  * == "Foto" sekarang menjadi default aktif ==
-                  * ===============================================
-                -->
+                <!-- (V8) Tombol "Semua" dihapus, "Foto" jadi default -->
                 <div class="flex overflow-x-auto gap-2 mb-6" data-aos="fade-up">
                     <button class="filter-btn flex-shrink-0 px-4 py-2 rounded-lg bg-accent text-white font-medium transition-all" data-filter="photos">Foto</button>
                     <button class="filter-btn flex-shrink-0 px-4 py-2 rounded-lg bg-dark-secondary text-gray-400 hover:text-white font-medium transition-all" data-filter="videos">Video</button>
                     <button class="filter-btn flex-shrink-0 px-4 py-2 rounded-lg bg-dark-secondary text-gray-400 hover:text-white font-medium transition-all" data-filter="music">Musik</button>
                     <button class="filter-btn flex-shrink-0 px-4 py-2 rounded-lg bg-dark-secondary text-gray-400 hover:text-white font-medium transition-all" data-filter="files">Dokumen</button>
                 </div>
-                <!-- =============================================== -->
 
 
                 <!-- Gallery Grid -->
@@ -663,11 +653,8 @@
         let fileTypeChart = null;
         let currentFile = null;
         let allFiles = [];
-        // ===============================================
-        // == PERUBAHAN: Filter default sekarang "photos" ==
-        // ===============================================
+        // (V8) Filter default sekarang "photos"
         let currentFilter = 'photos';
-        // ===============================================
         
         // Elemen DOM
         const appContent = document.getElementById('app-content');
@@ -863,12 +850,8 @@
 
         // --- Render Tampilan ---
         function renderGallery() {
-            // ===============================================
-            // == PERUBAHAN: Logika "all" dihapus ==
-            // == Sekarang langsung ambil dari allFiles[currentFilter] ==
-            // ===============================================
+            // (V8) Logika "all" dihapus
             const filesToShow = allFiles[currentFilter] || [];
-            // ===============================================
             
             if (filesToShow.length === 0) {
                 galleryContainer.innerHTML = '';
@@ -876,12 +859,6 @@
                 emptyGallery.classList.remove('hidden');
                 document.querySelector("#empty-gallery h3").textContent = `Belum ada ${currentFilter}`;
                 document.querySelector("#empty-gallery p").textContent = "Coba unggah beberapa file di kategori ini.";
-                
-                // Sembunyikan pesan jika filter 'all' (meskipun sudah dihapus)
-                if (currentFilter === 'all') {
-                     document.querySelector("#empty-gallery h3").textContent = "Belum ada file";
-                     document.querySelector("#empty-gallery p").textContent = "Mulai dengan mengunggah file pertama Anda.";
-                }
                 
                 return;
             }
@@ -901,7 +878,7 @@
                            file.mimeType.startsWith('audio/') ? 'music' : 'files';
                 
                 if (isImage) {
-                    // Menambahkan referrerpolicy="no-referrer" dan crossorigin="anonymous"
+                    // (V8) Menambahkan referrerpolicy="no-referrer" dan crossorigin="anonymous"
                     item.innerHTML = `
                         <div class="gallery-item">
                             <img src="${file.thumbnailUrl}" alt="${file.name}" loading="lazy" class="aspect-[3/4] object-cover" referrerpolicy="no-referrer" crossorigin="anonymous">
