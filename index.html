@@ -638,11 +638,11 @@
     <script>
         // --- KONFIGURASI (WAJIB DIISI!) ---
         // PASTIKAN ANDA MENGISI URL DEPLOYMENT APPS SCRIPT ANDA DI SINI
-        const APPS_SCRIPT_URL = ""; 
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzjMeA3l-C5W8gUtz9NOZYr5JjGQcMtIOYAbA-ACddbNCB85KQeveWRP6hgFtDZk_lG/exec"; 
         // ------------------------------------
 
         // Cek Konfigurasi
-        if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbzjMeA3l-C5W8gUtz9NOZYr5JjGQcMtIOYAbA-ACddbNCB85KQeveWRP6hgFtDZk_lG/exec")) {
+        if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes("YOUR_APPS_SCRIPT_URL_HERE")) {
             showToast("Error: Konfigurasi tidak lengkap", "error");
             document.body.innerHTML = `
                 <div class="p-8 text-center text-white font-sans">
