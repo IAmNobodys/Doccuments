@@ -116,35 +116,34 @@
             display: block;
         }
 
-        /* Grid untuk galeri */
+        /* * ===============================================
+         * == PERUBAHAN GRID KECIL (SESUAI PERMINTAAN) ==
+         * ===============================================
+        */
         .masonry-grid {
-            column-count: 2; /* 2 kolom di mobile */
-            column-gap: 0.75rem; /* Jarak lebih rapat di mobile */
+            column-count: 3; /* UBAH: jadi 3 kolom di mobile (grid kecil) */
+            column-gap: 0.5rem; /* UBAH: jarak lebih rapat lagi */
         }
 
         @media (min-width: 640px) {
             .masonry-grid {
-                column-count: 3;
-                column-gap: 1rem;
+                column-count: 4; /* UBAH: 4 di tablet */
+                column-gap: 0.75rem;
             }
         }
 
         @media (min-width: 1024px) {
             .masonry-grid {
-                column-count: 4;
+                column-count: 5; /* UBAH: 5 di desktop */
             }
         }
 
         .masonry-item {
             break-inside: avoid;
-            margin-bottom: 0.75rem; /* Jarak lebih rapat di mobile */
+            margin-bottom: 0.5rem; /* UBAH: jarak lebih rapat */
         }
-        
-        @media (min-width: 640px) {
-            .masonry-item {
-                margin-bottom: 1rem;
-            }
-        }
+        /* =============================================== */
+
 
         /* Skeleton Loader */
         .skeleton {
@@ -795,10 +794,7 @@
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 detik timeout
                 
-                // ==================================================================
                 // PERBAIKAN: Menambahkan cache buster '&t=' + new Date().getTime()
-                // Ini memaksa browser mengambil data baru setiap kali
-                // ==================================================================
                 const response = await fetch(APPS_SCRIPT_URL + '?action=getDriveData&t=' + new Date().getTime(), {
                     signal: controller.signal,
                     cache: 'no-store' // Hindari cache
@@ -882,12 +878,12 @@
                 
                 if (isImage) {
                     // ==================================================================
-                    // PERBAIKAN #2: Menambahkan referrerpolicy="no-referrer"
-                    // Ini adalah perbaikan untuk keamanan browser
+                    // USAHA TERAKHIR (hehe): Menambahkan crossorigin="anonymous"
+                    // Siapa tahu ini membantu...
                     // ==================================================================
                     item.innerHTML = `
                         <div class="gallery-item">
-                            <img src="${file.thumbnailUrl}" alt="${file.name}" loading="lazy" class="aspect-[3/4] object-cover" referrerpolicy="no-referrer">
+                            <img src="${file.thumbnailUrl}" alt="${file.name}" loading="lazy" class="aspect-[3/4] object-cover" referrerpolicy="no-referrer" crossorigin="anonymous">
                             <div class="gallery-overlay">
                                 <div class="flex justify-between items-end w-full">
                                     <div class="min-w-0">
