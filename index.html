@@ -35,6 +35,8 @@
                         'spin-slow': 'spin 3s linear infinite',
                         'slide-up': 'slideUp 0.3s ease',
                         'bounce-in': 'bounceIn 0.6s ease',
+                        'slide-in-right': 'slideInRight 0.3s ease-out',
+                        'slide-out-right': 'slideOutRight 0.3s ease-in',
                     },
                     keyframes: {
                         fadeIn: {
@@ -50,6 +52,14 @@
                             '50%': { transform: 'scale(1.05)' },
                             '70%': { transform: 'scale(0.9)' },
                             '100%': { transform: 'scale(1)', opacity: '1' }
+                        },
+                        slideInRight: {
+                            '0%': { transform: 'translateX(100%)' },
+                            '100%': { transform: 'translateX(0)' }
+                        },
+                        slideOutRight: {
+                            '0%': { transform: 'translateX(0)' },
+                            '100%': { transform: 'translateX(100%)' }
                         }
                     }
                 }
@@ -58,7 +68,7 @@
     </script>
     
     <style>
-        /* CSS Kustom untuk hal-hal yang tidak dapat ditangani oleh Tailwind */
+        /* CSS Kustom */
         :root {
             --bg-color: #0f0f0f;
             --primary-color: #1a1a1a;
@@ -86,10 +96,10 @@
                 radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.03) 0%, transparent 50%);
         }
 
-        /* Halaman Autentikasi Dihilangkan - Langsung ke Konten */
+        /* Halaman Autentikasi Dihilangkan */
         #auth-page { display: none; }
 
-        /* Konten Aplikasi Utama (langsung tampil) */
+        /* Konten Aplikasi Utama */
         #app-content {
             display: flex;
             flex-direction: column;
@@ -106,15 +116,16 @@
             display: block;
         }
 
-        /* Grid untuk galeri yang diperbaiki */
+        /* Grid untuk galeri */
         .masonry-grid {
-            column-count: 2;
-            column-gap: 1rem;
+            column-count: 2; /* 2 kolom di mobile */
+            column-gap: 0.75rem; /* Jarak lebih rapat di mobile */
         }
 
         @media (min-width: 640px) {
             .masonry-grid {
                 column-count: 3;
+                column-gap: 1rem;
             }
         }
 
@@ -126,7 +137,13 @@
 
         .masonry-item {
             break-inside: avoid;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem; /* Jarak lebih rapat di mobile */
+        }
+        
+        @media (min-width: 640px) {
+            .masonry-item {
+                margin-bottom: 1rem;
+            }
         }
 
         /* Skeleton Loader */
@@ -141,7 +158,7 @@
             100% { background-position: -200% 0; }
         }
 
-        /* Gallery Item yang diperbaiki */
+        /* Gallery Item */
         .gallery-item {
             position: relative;
             overflow: hidden;
@@ -152,7 +169,7 @@
 
         .gallery-item:hover {
             transform: translateY(-4px);
-            box-shadow: 0 20px 40px rgba(139, 92, 246, 0.15);
+            box-shadow: 0 10px 20px rgba(139, 92, 246, 0.1);
         }
 
         .gallery-item img {
@@ -174,38 +191,34 @@
             transition: opacity 0.3s ease;
             display: flex;
             align-items: flex-end;
-            padding: 1rem;
+            padding: 0.75rem; /* Padding lebih kecil di mobile */
+        }
+        
+        @media (min-width: 640px) {
+            .gallery-overlay {
+                padding: 1rem;
+            }
         }
 
         .gallery-item:hover .gallery-overlay {
             opacity: 1;
         }
 
-        /* Statistik Card yang diperbaiki */
+        /* Statistik Card (Minimalis) */
         .stat-card {
             background: var(--dark-primary);
             border: 1px solid rgba(139, 92, 246, 0.1);
             border-radius: 16px;
-            padding: 1.5rem;
+            padding: 1.25rem; /* Padding lebih kecil di mobile */
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
         }
-
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, var(--accent), var(--accent-light));
-            transform: scaleX(0);
-            transition: transform 0.3s ease;
-        }
-
-        .stat-card:hover::before {
-            transform: scaleX(1);
+        
+        @media (min-width: 640px) {
+            .stat-card {
+                padding: 1.5rem;
+            }
         }
 
         .stat-card:hover {
@@ -214,7 +227,7 @@
             border-color: rgba(139, 92, 246, 0.3);
         }
 
-        /* Progress Bar yang diperbaiki */
+        /* Progress Bar */
         .progress-ring {
             transform: rotate(-90deg);
         }
@@ -226,8 +239,9 @@
         /* Toast Notification */
         .toast {
             position: fixed;
-            bottom: 2rem;
-            right: 2rem;
+            bottom: 1rem;
+            left: 1rem;
+            right: 1rem;
             background: var(--dark-primary);
             border: 1px solid rgba(139, 92, 246, 0.3);
             border-radius: 12px;
@@ -235,20 +249,35 @@
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            transform: translateX(400px);
+            transform: translateY(200px);
             transition: transform 0.3s ease;
             z-index: 1000;
         }
+        
+        @media (min-width: 640px) {
+            .toast {
+                bottom: 2rem;
+                right: 2rem;
+                left: auto;
+                transform: translateX(400px);
+            }
+        }
 
         .toast.show {
-            transform: translateX(0);
+            transform: translateY(0);
+        }
+        
+        @media (min-width: 640px) {
+            .toast.show {
+                transform: translateX(0);
+            }
         }
 
         /* Floating Action Button */
         .fab {
             position: fixed;
-            bottom: 2rem;
-            right: 2rem;
+            bottom: 1.5rem;
+            right: 1.5rem;
             width: 56px;
             height: 56px;
             border-radius: 50%;
@@ -275,7 +304,7 @@
             gap: 0.5rem;
             padding: 0.25rem 0.75rem;
             border-radius: 9999px;
-            font-size: 0.875rem;
+            font-size: 0.75rem; /* Lebih kecil */
             font-weight: 500;
         }
 
@@ -283,39 +312,107 @@
         .file-badge.video { background: rgba(239, 68, 68, 0.1); color: #f87171; }
         .file-badge.audio { background: rgba(168, 85, 247, 0.1); color: #c084fc; }
         .file-badge.document { background: rgba(34, 197, 94, 0.1); color: #4ade80; }
+        
+        /* Mobile Menu */
+        #mobile-menu-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 50;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        
+        #mobile-menu {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 80%;
+            max-width: 300px;
+            background: var(--dark-primary);
+            z-index: 60;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+        }
+        
+        #mobile-menu.open {
+            transform: translateX(0);
+        }
+        
+        #mobile-menu-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
     </style>
 </head>
 <body class="dark">
-    <!-- Halaman Autentikasi (Dihilangkan, tapi kita biarkan div-nya agar tidak error jika ada referensi sisa) -->
+    <!-- Halaman Autentikasi (Dihilangkan) -->
     <div id="auth-page" style="display: none;"></div>
 
     <!-- Konten Aplikasi Utama -->
     <main id="app-content">
-        <!-- Navigasi yang diperbaiki -->
-        <nav class="bg-dark-primary/80 backdrop-blur-lg border-b border-gray-800/50 px-4 py-4 md:px-8 flex justify-between items-center sticky top-0 z-50">
+        <!-- Navigasi -->
+        <nav class="bg-dark-primary/80 backdrop-blur-lg border-b border-gray-800/50 px-4 py-4 md:px-8 flex justify-between items-center sticky top-0 z-40">
+            <!-- Logo -->
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-gradient-to-br from-accent to-accent-light rounded-lg flex items-center justify-center">
                     <i class="fas fa-cloud text-white"></i>
                 </div>
                 <h1 class="text-xl font-bold bg-gradient-to-r from-accent to-accent-light bg-clip-text text-transparent">Private Space</h1>
             </div>
-            <div class="flex gap-2">
-                <a href="#gallery" id="nav-gallery" class="nav-link px-4 py-2 rounded-lg transition-all duration-300 font-medium bg-accent/10 text-accent">Galeri</a>
-                <a href="#upload" id="nav-upload" class="nav-link px-4 py-2 rounded-lg transition-all duration-300 font-medium text-gray-400 hover:text-white hover:bg-dark-secondary">Unggah</a>
-                <a href="#stats" id="nav-stats" class="nav-link px-4 py-2 rounded-lg transition-all duration-300 font-medium text-gray-400 hover:text-white hover:bg-dark-secondary">Statistik</a>
+            
+            <!-- Navigasi Desktop -->
+            <div class="hidden md:flex gap-2">
+                <a href="#gallery" id="nav-gallery" class="nav-link-item px-4 py-2 rounded-lg transition-all duration-300 font-medium">Galeri</a>
+                <a href="#upload" id="nav-upload" class="nav-link-item px-4 py-2 rounded-lg transition-all duration-300 font-medium">Unggah</a>
+                <a href="#stats" id="nav-stats" class="nav-link-item px-4 py-2 rounded-lg transition-all duration-300 font-medium">Statistik</a>
             </div>
+            
+            <!-- Tombol Hamburger (Mobile) -->
+            <button id="menu-btn" class="md:hidden w-10 h-10 rounded-lg text-gray-400 hover:bg-dark-secondary hover:text-white transition-all">
+                <i class="fas fa-bars text-lg"></i>
+            </button>
         </nav>
 
+        <!-- Menu Mobile -->
+        <div id="mobile-menu-overlay"></div>
+        <div id="mobile-menu">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-xl font-bold text-white">Menu</h2>
+                <button id="menu-close-btn" class="w-10 h-10 rounded-lg text-gray-400 hover:bg-dark-secondary hover:text-white transition-all">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+            <nav class="flex flex-col gap-4">
+                <a href="#gallery" id="nav-mobile-gallery" class="nav-link-item text-gray-300 hover:text-white hover:bg-dark-secondary text-lg font-medium px-4 py-3 rounded-lg transition-all">
+                    <i class="fas fa-images w-6 mr-3"></i>Galeri
+                </a>
+                <a href="#upload" id="nav-mobile-upload" class="nav-link-item text-gray-300 hover:text-white hover:bg-dark-secondary text-lg font-medium px-4 py-3 rounded-lg transition-all">
+                    <i class="fas fa-upload w-6 mr-3"></i>Unggah
+                </a>
+                <a href="#stats" id="nav-mobile-stats" class="nav-link-item text-gray-300 hover:text-white hover:bg-dark-secondary text-lg font-medium px-4 py-3 rounded-lg transition-all">
+                    <i class="fas fa-chart-bar w-6 mr-3"></i>Statistik
+                </a>
+            </nav>
+        </div>
+
+
         <div class="page-container flex-grow p-4 md:p-8 max-w-7xl mx-auto w-full">
-            <!-- Halaman Galeri yang diperbaiki -->
+            <!-- Halaman Galeri -->
             <section id="gallery-page" class="page active">
                 <!-- Filter Tabs -->
-                <div class="flex flex-wrap gap-2 mb-6" data-aos="fade-up">
-                    <button class="filter-btn px-4 py-2 rounded-lg bg-accent text-white font-medium transition-all" data-filter="all">Semua</button>
-                    <button class="filter-btn px-4 py-2 rounded-lg bg-dark-secondary text-gray-400 hover:text-white font-medium transition-all" data-filter="photos">Foto</button>
-                    <button class="filter-btn px-4 py-2 rounded-lg bg-dark-secondary text-gray-400 hover:text-white font-medium transition-all" data-filter="videos">Video</button>
-                    <button class="filter-btn px-4 py-2 rounded-lg bg-dark-secondary text-gray-400 hover:text-white font-medium transition-all" data-filter="music">Musik</button>
-                    <button class="filter-btn px-4 py-2 rounded-lg bg-dark-secondary text-gray-400 hover:text-white font-medium transition-all" data-filter="files">Dokumen</button>
+                <div class="flex overflow-x-auto gap-2 mb-6" data-aos="fade-up">
+                    <button class="filter-btn flex-shrink-0 px-4 py-2 rounded-lg bg-accent text-white font-medium transition-all" data-filter="all">Semua</button>
+                    <button class="filter-btn flex-shrink-0 px-4 py-2 rounded-lg bg-dark-secondary text-gray-400 hover:text-white font-medium transition-all" data-filter="photos">Foto</button>
+                    <button class="filter-btn flex-shrink-0 px-4 py-2 rounded-lg bg-dark-secondary text-gray-400 hover:text-white font-medium transition-all" data-filter="videos">Video</button>
+                    <button class="filter-btn flex-shrink-0 px-4 py-2 rounded-lg bg-dark-secondary text-gray-400 hover:text-white font-medium transition-all" data-filter="music">Musik</button>
+                    <button class="filter-btn flex-shrink-0 px-4 py-2 rounded-lg bg-dark-secondary text-gray-400 hover:text-white font-medium transition-all" data-filter="files">Dokumen</button>
                 </div>
 
                 <!-- Gallery Grid -->
@@ -325,8 +422,6 @@
                     <div class="skeleton masonry-item h-64 rounded-xl"></div>
                     <div class="skeleton masonry-item h-56 rounded-xl"></div>
                     <div class="skeleton masonry-item h-72 rounded-xl"></div>
-                    <div class="skeleton masonry-item h-52 rounded-xl"></div>
-                    <div class="skeleton masonry-item h-60 rounded-xl"></div>
                 </div>
 
                 <!-- Empty State -->
@@ -337,16 +432,16 @@
                 </div>
             </section>
 
-            <!-- Halaman Upload yang diperbaiki -->
+            <!-- Halaman Upload -->
             <section id="upload-page" class="page">
                 <div class="max-w-3xl mx-auto" data-aos="fade-up">
                     <h2 class="text-3xl font-bold mb-2 bg-gradient-to-r from-accent to-accent-light bg-clip-text text-transparent">Unggah File</h2>
                     <p class="text-gray-400 mb-8">Bagikan momen Anda dengan aman dan privat</p>
                     
-                    <form id="upload-form" class="bg-dark-primary rounded-2xl p-8 border border-gray-800">
-                        <div id="drop-zone" class="border-2 border-dashed border-gray-700 rounded-xl p-12 text-center cursor-pointer hover:border-accent transition-all duration-300 group">
+                    <form id="upload-form" class="bg-dark-primary rounded-2xl p-6 md:p-8 border border-gray-800">
+                        <div id="drop-zone" class="border-2 border-dashed border-gray-700 rounded-xl p-8 md:p-12 text-center cursor-pointer hover:border-accent transition-all duration-300 group">
                             <div class="transition-transform duration-300 group-hover:scale-110">
-                                <i class="fas fa-cloud-upload-alt text-6xl mb-4 text-gray-500 group-hover:text-accent"></i>
+                                <i class="fas fa-cloud-upload-alt text-5xl md:text-6xl mb-4 text-gray-500 group-hover:text-accent"></i>
                             </div>
                             <p class="text-lg text-gray-400 mb-2">Tarik & lepas file di sini</p>
                             <p class="text-sm text-gray-500 mb-4">atau</p>
@@ -358,14 +453,14 @@
                         
                         <div id="file-preview" class="hidden mt-6 p-4 bg-dark-secondary rounded-lg">
                             <div class="flex items-center gap-4">
-                                <div id="file-icon" class="w-12 h-12 bg-accent/20 rounded-lg flex items-center justify-center">
+                                <div id="file-icon" class="w-12 h-12 bg-accent/20 rounded-lg flex items-center justify-center flex-shrink-0">
                                     <i class="fas fa-file text-accent"></i>
                                 </div>
-                                <div class="flex-grow">
-                                    <p id="file-name" class="font-medium"></p>
+                                <div class="flex-grow min-w-0">
+                                    <p id="file-name" class="font-medium truncate"></p>
                                     <p id="file-size" class="text-sm text-gray-400"></p>
                                 </div>
-                                <button type="button" id="remove-file" class="text-gray-400 hover:text-red-400">
+                                <button type="button" id="remove-file" class="text-gray-400 hover:text-red-400 flex-shrink-0 ml-2">
                                     <i class="fas fa-times"></i>
                                 </button>
                             </div>
@@ -388,64 +483,64 @@
                 </div>
             </section>
 
-            <!-- Halaman Statistik yang diperbaiki -->
+            <!-- Halaman Statistik -->
             <section id="stats-page" class="page">
                 <div class="mb-8" data-aos="fade-up">
-                    <h2 class="text-3xl font-bold mb-2 bg-gradient-to-r from-accent to-accent-light bg-clip-text text-transparent">Statistik Penyimpanan</h2>
-                    <p class="text-gray-400">Pantau penggunaan storage Anda secara real-time</p>
+                    <h2 class="text-3xl font-bold mb-2 bg-gradient-to-r from-accent to-accent-light bg-clip-text text-transparent">Statistik</h2>
+                    <p class="text-gray-400">Pantau penggunaan storage Anda</p>
                 </div>
 
                 <!-- Stats Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8">
                     <div class="stat-card" data-aos="fade-up" data-aos-delay="100">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-image text-blue-400"></i>
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="w-10 h-10 md:w-12 md:h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-image text-blue-400 text-lg md:text-xl"></i>
                             </div>
-                            <span class="text-2xl font-bold" id="photo-count">0</span>
+                            <span class="text-xl md:text-2xl font-bold" id="photo-count">0</span>
                         </div>
-                        <p class="text-gray-400">Foto</p>
-                        <p class="text-sm text-gray-500 mt-1" id="photo-size">0 MB</p>
+                        <p class="text-gray-400 text-sm md:text-base">Foto</p>
+                        <p class="text-xs md:text-sm text-gray-500 mt-1" id="photo-size">0 MB</p>
                     </div>
 
                     <div class="stat-card" data-aos="fade-up" data-aos-delay="200">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="w-12 h-12 bg-red-500/20 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-video text-red-400"></i>
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="w-10 h-10 md:w-12 md:h-12 bg-red-500/20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-video text-red-400 text-lg md:text-xl"></i>
                             </div>
-                            <span class="text-2xl font-bold" id="video-count">0</span>
+                            <span class="text-xl md:text-2xl font-bold" id="video-count">0</span>
                         </div>
-                        <p class="text-gray-400">Video</p>
-                        <p class="text-sm text-gray-500 mt-1" id="video-size">0 MB</p>
+                        <p class="text-gray-400 text-sm md:text-base">Video</p>
+                        <p class="text-xs md:text-sm text-gray-500 mt-1" id="video-size">0 MB</p>
                     </div>
 
                     <div class="stat-card" data-aos="fade-up" data-aos-delay="300">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-music text-purple-400"></i>
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="w-10 h-10 md:w-12 md:h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-music text-purple-400 text-lg md:text-xl"></i>
                             </div>
-                            <span class="text-2xl font-bold" id="music-count">0</span>
+                            <span class="text-xl md:text-2xl font-bold" id="music-count">0</span>
                         </div>
-                        <p class="text-gray-400">Musik</p>
-                        <p class="text-sm text-gray-500 mt-1" id="music-size">0 MB</p>
+                        <p class="text-gray-400 text-sm md:text-base">Musik</p>
+                        <p class="text-xs md:text-sm text-gray-500 mt-1" id="music-size">0 MB</p>
                     </div>
 
                     <div class="stat-card" data-aos="fade-up" data-aos-delay="400">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-file text-green-400"></i>
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="w-10 h-10 md:w-12 md:h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-file text-green-400 text-lg md:text-xl"></i>
                             </div>
-                            <span class="text-2xl font-bold" id="file-count">0</span>
+                            <span class="text-xl md:text-2xl font-bold" id="file-count">0</span>
                         </div>
-                        <p class="text-gray-400">Dokumen</p>
-                        <p class="text-sm text-gray-500 mt-1" id="file-size-total">0 MB</p>
+                        <p class="text-gray-400 text-sm md:text-base">Dokumen</p>
+                        <p class="text-xs md:text-sm text-gray-500 mt-1" id="file-size-total">0 MB</p>
                     </div>
                 </div>
 
                 <!-- Charts -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                     <div class="stat-card" data-aos="fade-up" data-aos-delay="500">
-                        <h3 class="text-xl font-semibold mb-6 flex items-center gap-2">
+                        <h3 class="text-lg md:text-xl font-semibold mb-6 flex items-center gap-2">
                             <i class="fas fa-chart-pie text-accent"></i>
                             Distribusi File
                         </h3>
@@ -455,7 +550,7 @@
                     </div>
 
                     <div class="stat-card" data-aos="fade-up" data-aos-delay="600">
-                        <h3 class="text-xl font-semibold mb-6 flex items-center gap-2">
+                        <h3 class="text-lg md:text-xl font-semibold mb-6 flex items-center gap-2">
                             <i class="fas fa-hdd text-accent"></i>
                             Penggunaan Storage
                         </h3>
@@ -496,18 +591,18 @@
 
                 <!-- Recent Files -->
                 <div class="stat-card" data-aos="fade-up" data-aos-delay="700">
-                    <h3 class="text-xl font-semibold mb-6 flex items-center gap-2">
+                    <h3 class="text-lg md:text-xl font-semibold mb-6 flex items-center gap-2">
                         <i class="fas fa-clock text-accent"></i>
                         File Terbaru
                     </h3>
                     <div class="overflow-x-auto">
-                        <table class="w-full">
+                        <table class="w-full min-w-[600px]">
                             <thead>
                                 <tr class="border-b border-gray-800">
-                                    <th class="text-left pb-3 text-gray-400">Nama File</th>
-                                    <th class="text-center pb-3 text-gray-400">Tipe</th>
-                                    <th class="text-right pb-3 text-gray-400">Ukuran</th>
-                                    <th class="text-right pb-3 text-gray-400">Tanggal</th>
+                                    <th class="text-left pb-3 text-gray-400 font-medium">Nama File</th>
+                                    <th class="text-center pb-3 text-gray-400 font-medium">Tipe</th>
+                                    <th class="text-right pb-3 text-gray-400 font-medium">Ukuran</th>
+                                    <th class="text-right pb-3 text-gray-400 font-medium">Tanggal</th>
                                 </tr>
                             </thead>
                             <tbody id="recent-files">
@@ -520,7 +615,7 @@
         </div>
 
         <footer class="bg-dark-primary/80 backdrop-blur-lg border-t border-gray-800/50 text-center py-6 text-sm text-gray-500">
-            <p>&copy; 2025 Private Space. Built with <i class="fas fa-heart text-red-500"></i> using modern web technologies</p>
+            <p>&copy; 2025 Private Space. Dibuat dengan Niat Dan Skils</p>
         </footer>
     </main>
     
@@ -546,12 +641,12 @@
         // ------------------------------------
 
         // Cek Konfigurasi
-        if (!APPS_SCRIPT_URL) {
+        if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes("YOUR_APPS_SCRIPT_URL_HERE")) {
             showToast("Error: Konfigurasi tidak lengkap", "error");
             document.body.innerHTML = `
                 <div class="p-8 text-center text-white font-sans">
                     <h1 class="text-2xl mb-4">Error: Konfigurasi Tidak Lengkap</h1>
-                    <p class="text-lg">Harap lengkapi APPS_SCRIPT_URL</p>
+                    <p class="text-lg">Harap isi APPS_SCRIPT_URL di dalam kode JavaScript.</p>
                 </div>
             `;
             throw new Error("Konfigurasi aplikasi tidak lengkap.");
@@ -563,12 +658,9 @@
         let allFiles = [];
         let currentFilter = 'all';
         
-        // Variabel untuk menyimpan warna CSS
-        let accentColor, textColor, secondaryColor;
-
         // Elemen DOM
         const appContent = document.getElementById('app-content');
-        const navLinks = document.querySelectorAll('.nav-link');
+        const navLinks = document.querySelectorAll('.nav-link-item'); // Menggunakan class umum
         const pages = document.querySelectorAll('.page');
         const fabUpload = document.getElementById('fab-upload');
         
@@ -591,18 +683,40 @@
         const emptyGallery = document.getElementById('empty-gallery');
         const filterBtns = document.querySelectorAll('.filter-btn');
 
+        // Elemen Menu Mobile
+        const menuBtn = document.getElementById('menu-btn');
+        const menuCloseBtn = document.getElementById('menu-close-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
+
         // --- Inisialisasi AOS Animation ---
         AOS.init({
             duration: 800,
-            once: true
+            once: true,
+            disable: 'mobile' // Nonaktifkan di mobile untuk performa
         });
 
-        // --- Navigasi Halaman ---
+        // --- Navigasi Halaman & Menu Mobile ---
+        function toggleMobileMenu(show) {
+            if (show) {
+                mobileMenuOverlay.classList.add('open');
+                mobileMenu.classList.add('open');
+            } else {
+                mobileMenuOverlay.classList.remove('open');
+                mobileMenu.classList.remove('open');
+            }
+        }
+
+        menuBtn.addEventListener('click', () => toggleMobileMenu(true));
+        menuCloseBtn.addEventListener('click', () => toggleMobileMenu(false));
+        mobileMenuOverlay.addEventListener('click', () => toggleMobileMenu(false));
+
         navLinks.forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
                 const pageId = e.target.hash.substring(1) + '-page';
                 showPage(pageId);
+                toggleMobileMenu(false); // Tutup menu setelah klik
                 
                 // Refresh data jika ke halaman galeri atau stats
                 if (pageId === 'gallery-page' || pageId === 'stats-page') {
@@ -615,16 +729,38 @@
             pages.forEach(page => {
                 page.classList.toggle('active', page.id === pageId);
             });
+            
+            const activeHash = `#${pageId.replace('-page', '')}`;
+            
             navLinks.forEach(link => {
-                const isActive = link.hash === `#${pageId.replace('-page', '')}`;
+                const isActive = link.hash === activeHash;
                 link.classList.toggle('bg-accent/10', isActive);
                 link.classList.toggle('text-accent', isActive);
-                link.classList.toggle('text-gray-400', !isActive);
-                link.classList.toggle('hover:text-white', !isActive);
+                
+                // Atur style default untuk desktop
+                if (!link.id.startsWith('nav-mobile-')) {
+                    link.classList.toggle('text-gray-400', !isActive);
+                    link.classList.toggle('hover:text-white', !isActive);
+                }
+                
+                // Atur style default untuk mobile
+                if (link.id.startsWith('nav-mobile-')) {
+                    link.classList.toggle('text-gray-300', !isActive);
+                    link.classList.toggle('bg-dark-secondary', isActive);
+                }
             });
 
             // Show/hide FAB
             fabUpload.classList.toggle('hidden', pageId === 'upload-page');
+            
+            // Atur halaman galeri sebagai default
+            if (pageId === 'gallery-page') {
+                document.getElementById('nav-gallery').classList.add('bg-accent/10', 'text-accent');
+                document.getElementById('nav-gallery').classList.remove('text-gray-400');
+                
+                document.getElementById('nav-mobile-gallery').classList.add('bg-dark-secondary', 'text-accent');
+                document.getElementById('nav-mobile-gallery').classList.remove('text-gray-300');
+            }
         }
 
         // --- Filter Gallery ---
@@ -656,10 +792,11 @@
                 
                 // Panggil Apps Script untuk data dengan timeout
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 detik timeout
+                const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 detik timeout
                 
                 const response = await fetch(APPS_SCRIPT_URL + '?action=getDriveData', {
-                    signal: controller.signal
+                    signal: controller.signal,
+                    cache: 'no-store' // Hindari cache
                 });
                 
                 clearTimeout(timeoutId);
@@ -686,17 +823,18 @@
                 } else {
                     showToast("Gagal memuat data: " + error.message, "error");
                 }
+                galleryContainer.innerHTML = ''; // Bersihkan skeleton
+                emptyGallery.classList.remove('hidden'); // Tampilkan empty state
             }
         }
 
         function showSkeletonLoader() {
+            emptyGallery.classList.add('hidden');
             galleryContainer.innerHTML = `
                 <div class="skeleton masonry-item h-48 rounded-xl"></div>
                 <div class="skeleton masonry-item h-64 rounded-xl"></div>
                 <div class="skeleton masonry-item h-56 rounded-xl"></div>
                 <div class="skeleton masonry-item h-72 rounded-xl"></div>
-                <div class="skeleton masonry-item h-52 rounded-xl"></div>
-                <div class="skeleton masonry-item h-60 rounded-xl"></div>
             `;
         }
 
@@ -729,15 +867,15 @@
                 if (isImage) {
                     item.innerHTML = `
                         <div class="gallery-item">
-                            <img src="${file.thumbnailUrl}" alt="${file.name}" loading="lazy">
+                            <img src="${file.thumbnailUrl}" alt="${file.name}" loading="lazy" class="aspect-[3/4] object-cover">
                             <div class="gallery-overlay">
                                 <div class="flex justify-between items-end w-full">
-                                    <div>
-                                        <p class="font-medium truncate">${file.name}</p>
-                                        <p class="text-sm opacity-75">${formatFileSize(file.size)}</p>
+                                    <div class="min-w-0">
+                                        <p class="font-medium truncate text-sm">${file.name}</p>
+                                        <p class="text-xs opacity-75">${formatFileSize(file.size)}</p>
                                     </div>
-                                    <a href="${file.downloadUrl}" class="w-10 h-10 bg-white/20 backdrop-blur rounded-full flex items-center justify-center hover:bg-white/30 transition-all" title="Download" target="_blank">
-                                        <i class="fas fa-download text-white"></i>
+                                    <a href="${file.downloadUrl}" class="w-8 h-8 bg-white/20 backdrop-blur rounded-full flex items-center justify-center hover:bg-white/30 transition-all flex-shrink-0 ml-2" title="Download" target="_blank">
+                                        <i class="fas fa-download text-white text-sm"></i>
                                     </a>
                                 </div>
                             </div>
@@ -750,13 +888,13 @@
                                  type === 'music' ? 'purple' : 'green';
                     
                     item.innerHTML = `
-                        <div class="gallery-item p-6">
-                            <div class="flex flex-col items-center justify-center h-full text-center">
-                                <i class="fas fa-${icon} text-4xl text-${color}-400 mb-4"></i>
-                                <p class="font-medium truncate w-full">${file.name}</p>
-                                <p class="text-sm text-gray-400 mt-2">${formatFileSize(file.size)}</p>
-                                <a href="${file.downloadUrl}" class="mt-4 px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent-light transition-all" target="_blank">
-                                    <i class="fas fa-download mr-2"></i>Download
+                        <div class="gallery-item p-4 md:p-6 h-48 flex flex-col items-center justify-center">
+                            <div class="text-center">
+                                <i class="fas fa-${icon} text-3xl md:text-4xl text-${color}-400 mb-4"></i>
+                                <p class="font-medium truncate w-full text-sm">${file.name}</p>
+                                <p class="text-xs text-gray-400 mt-2">${formatFileSize(file.size)}</p>
+                                <a href="${file.downloadUrl}" class="mt-4 px-3 py-1.5 bg-accent text-white rounded-lg hover:bg-accent-light transition-all text-sm" target="_blank">
+                                    <i class="fas fa-download mr-1"></i>Download
                                 </a>
                             </div>
                         </div>
@@ -767,7 +905,7 @@
             });
             
             // Refresh AOS
-            AOS.refresh();
+            setTimeout(() => AOS.refresh(), 100);
         }
 
         function renderStatistics(categories, quota) {
@@ -819,7 +957,7 @@
                     plugins: {
                         legend: { 
                             position: 'bottom',
-                            labels: { color: '#9ca3af', padding: 20 }
+                            labels: { color: '#9ca3af', padding: 20, font: { size: 12 } }
                         }
                     }
                 }
@@ -829,7 +967,7 @@
             const used = quota ? parseFloat(quota.usage) : 0;
             const limit = quota ? parseFloat(quota.limit) : 1;
             const free = limit - used;
-            const percent = Math.min((used / limit) * 100, 100);
+            const percent = (limit <= 0) ? 0 : Math.min((used / limit) * 100, 100);
             
             // Update progress circle
             const circle = document.getElementById('progress-circle');
@@ -846,10 +984,10 @@
             // --- Recent Files Table ---
             const recentFilesEl = document.getElementById('recent-files');
             const allRecentFiles = [
-                ...categories.photos.slice(0, 5),
-                ...categories.videos.slice(0, 5),
-                ...categories.music.slice(0, 5),
-                ...categories.files.slice(0, 5)
+                ...categories.photos,
+                ...categories.videos,
+                ...categories.music,
+                ...categories.files
             ].sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime)).slice(0, 10);
             
             if (allRecentFiles.length === 0) {
@@ -862,12 +1000,12 @@
                     
                     return `
                         <tr class="border-b border-gray-800/50 hover:bg-dark-secondary/50 transition-colors">
-                            <td class="py-3 truncate max-w-xs">${file.name}</td>
-                            <td class="py-3 text-center">
+                            <td class="py-3 px-1 truncate max-w-[150px] md:max-w-xs">${file.name}</td>
+                            <td class="py-3 px-1 text-center">
                                 <span class="file-badge ${type}">${type}</span>
                             </td>
-                            <td class="py-3 text-right">${formatFileSize(file.size)}</td>
-                            <td class="py-3 text-right text-gray-400">${new Date(file.createdTime).toLocaleDateString('id-ID')}</td>
+                            <td class="py-3 px-1 text-right">${formatFileSize(file.size)}</td>
+                            <td class="py-3 px-1 text-right text-gray-400">${new Date(file.createdTime).toLocaleDateString('id-ID')}</td>
                         </tr>
                     `;
                 }).join('');
@@ -1009,7 +1147,14 @@
                     console.error("Error during upload:", error);
                     showToast('Upload gagal: ' + error.message, 'error');
                     uploadBtn.disabled = false;
+                    uploadProgress.classList.add('hidden'); // Sembunyikan progress bar jika gagal
                 }
+            };
+            
+            reader.onerror = (error) => {
+                console.error("Error reading file:", error);
+                showToast('Gagal membaca file', 'error');
+                uploadBtn.disabled = false;
             };
         }
         
@@ -1037,22 +1182,26 @@
 
         function animateCounter(id, target) {
             const element = document.getElementById(id);
+            if (!element) return;
             const duration = 1000;
-            const step = target / (duration / 16);
-            let current = 0;
+            const start = parseInt(element.textContent) || 0;
+            const stepTime = 16; // 60fps
+            const totalSteps = duration / stepTime;
+            const increment = (target - start) / totalSteps;
+            let current = start;
             
             const timer = setInterval(() => {
-                current += step;
-                if (current >= target) {
+                current += increment;
+                if ((increment > 0 && current >= target) || (increment < 0 && current <= target)) {
                     current = target;
                     clearInterval(timer);
                 }
                 element.textContent = Math.round(current);
-            }, 16);
+            }, stepTime);
         }
 
         function formatFileSize(bytes) {
-            if (bytes === 0) return '0 B';
+            if (!bytes || bytes === 0) return '0 B';
             const k = 1024;
             const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
             const bytesNum = parseInt(bytes, 10);
@@ -1063,18 +1212,16 @@
         
         // --- Inisialisasi ---
         document.addEventListener('DOMContentLoaded', () => {
-            // Ambil CSS variables
-            const rootStyles = getComputedStyle(document.documentElement);
-            accentColor = rootStyles.getPropertyValue('--accent-color').trim();
-            textColor = rootStyles.getPropertyValue('--text-color').trim();
-            secondaryColor = rootStyles.getPropertyValue('--secondary-color').trim() || '#555';
-            
             // Setup listeners
             setupUploadListeners();
             
             // Muat data awal
             loadDriveData();
+            
+            // Atur halaman default
+            showPage('gallery-page');
         });
     </script>
 </body>
 </html>
+
