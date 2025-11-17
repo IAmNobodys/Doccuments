@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Our Private Space</title>
+    <title>Our Private Space (Apps Script)</title>
     <!-- Impor Chart.js untuk diagram statistik -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -31,48 +31,12 @@
             overscroll-behavior: none;
         }
 
-        /* Halaman Autentikasi */
-        #auth-page {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            text-align: center;
-        }
+        /* Halaman Autentikasi Dihilangkan - Langsung ke Konten */
+        #auth-page { display: none; }
 
-        #auth-page h1 {
-            font-size: 2.5rem;
-            font-weight: 300;
-            margin-bottom: 1rem;
-        }
-
-        #auth-page p {
-            font-size: 1.1rem;
-            margin-bottom: 2rem;
-            color: #aaa;
-        }
-
-        #login-btn {
-            background-color: var(--accent-color);
-            color: #121212;
-            border: none;
-            padding: 1rem 2rem;
-            font-size: 1rem;
-            font-weight: 600;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-        }
-
-        #login-btn:hover {
-            background-color: #a06bf3;
-            transform: translateY(-2px);
-        }
-
-        /* Konten Aplikasi Utama (disembunyikan secara default) */
+        /* Konten Aplikasi Utama (langsung tampil) */
         #app-content {
-            display: none;
+            display: flex;
             flex-direction: column;
             min-height: 100vh;
         }
@@ -459,12 +423,8 @@
         </symbol>
     </svg>
 
-    <!-- Halaman Autentikasi -->
-    <div id="auth-page">
-        <h1>Our Private Space</h1>
-        <p>Shalom</p>
-        <button id="login-btn">Login Google</button>
-    </div>
+    <!-- Halaman Autentikasi (Dihilangkan, tapi kita biarkan div-nya agar tidak error jika ada referensi sisa) -->
+    <div id="auth-page" style="display: none;"></div>
 
     <!-- Konten Aplikasi Utama -->
     <main id="app-content">
@@ -516,8 +476,9 @@
                         <input type="file" id="file-input" required>
                     </div>
                     <div id="file-name-display">Tidak ada file dipilih.</div>
-                    <div id="upload-progress-container">
-                        <div id="upload-progress-bar"></div>
+                    <!-- Progress bar tidak lagi digunakan untuk upload XHR, tapi kita biarkan untuk status simpel -->
+                    <div id="upload-progress-container" style="display:none;"> 
+                         <div id="upload-progress-bar" style="width: 100%; background-color: var(--accent-color);"></div>
                     </div>
                     <div id="upload-status"></div>
                     <button type="submit" id="upload-btn" class="upload-btn" disabled>Unggah</button>
@@ -557,38 +518,41 @@
         <div class="loader"></div>
     </div>
 
-    <!-- Google API Client & Identity Scripts -->
-    <script src="https://apis.google.com/js/api.js" async defer onload="gapiLoaded()"></script>
-    <script src="https://accounts.google.com/gsi/client" async defer onload="gisLoaded()"></script>
-
+    <!-- 
+      ==================================================================
+      == SCRIPT APLIKASI UTAMA (Versi Apps Script)
+      == Jauh lebih sederhana! Tidak ada GAPI/GIS/OAuth.
+      ==================================================================
+    -->
     <script>
         // --- KONFIGURASI (WAJIB DIISI!) ---
-        // Harap isi nilai-nilai ini sesuai dengan petunjuk di README.md
-        const CONFIG = {
-            CLIENT_ID: "", // <-- Isi Client ID Anda di sini
-            API_KEY: "",     // <-- Isi API Key Anda di sini
-            FOLDER_ID: ""    // <-- Isi Folder ID Google Drive Anda di sini
-        };
+        // <-- PASTE URL DEPLOYMENT APPS SCRIPT ANDA DI SINI
+        const APPS_SCRIPT_URL = ""; 
         // ------------------------------------
 
         // Cek Konfigurasi
-        if (!CONFIG.CLIENT_ID || !CONFIG.API_KEY || !CONFIG.FOLDER_ID) {
-            alert("MOHON LENGKAPI KONFIGURASI");
-            document.body.innerHTML = "<h1>Error: LENGKAPI KONFIGURASI </h1><p>Harap baca file README.md untuk instruksi setup.</p>";
+        if (!APPS_SCRIPT_URL) {
+            alert("MOHON LENGKAPI KONFIGURASI PADA FILE index.html (APPS_SCRIPT_URL)");
+            document.body.innerHTML = `
+                <div style="padding: 2rem; text-align: center; color: white; font-family: sans-serif;">
+                    <h1>Error: Konfigurasi Tidak Lengkap</h1>
+                    <p style="font-size: 1.2rem;">Harap buka file <strong>index.html</strong> dan isi nilai <strong>APPS_SCRIPT_URL</strong> di dalam variabel CONFIG pada blok &lt;script&gt;.</p>
+                    <p>Anda akan mendapatkan URL ini setelah men-deploy file <strong>Code.gs</strong> sebagai Web App.</p>
+                </div>
+            `;
+            // Hentikan eksekusi script
+            throw new Error("Konfigurasi aplikasi tidak lengkap.");
         }
 
-        const SCOPES = 'https://www.googleapis.com/auth/drive';
 
-        let tokenClient;
-        let gapiInited = false;
-        let gisInited = false;
         let storageChart = null;
         let fileTypeChart = null;
         let currentFile = null;
+        
+        // Variabel untuk menyimpan warna CSS
+        let accentColor, textColor, secondaryColor;
 
         // Elemen DOM
-        const loginBtn = document.getElementById('login-btn');
-        const authPage = document.getElementById('auth-page');
         const appContent = document.getElementById('app-content');
         const navLinks = document.querySelectorAll('.nav-link');
         const pages = document.querySelectorAll('.page');
@@ -618,56 +582,6 @@
             files: document.getElementById('empty-files')
         };
 
-        // Inisialisasi API Google
-        function gapiLoaded() {
-            gapi.load('client', initializeGapiClient);
-        }
-
-        async function initializeGapiClient() {
-            await gapi.client.init({
-                apiKey: CONFIG.API_KEY,
-                discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"],
-            });
-            gapiInited = true;
-            maybeEnableButtons();
-        }
-
-        function gisLoaded() {
-            tokenClient = google.accounts.oauth2.initTokenClient({
-                client_id: CONFIG.CLIENT_ID,
-                scope: SCOPES,
-                callback: authCallback,
-            });
-            gisInited = true;
-            maybeEnableButtons();
-        }
-
-        function maybeEnableButtons() {
-            if (gapiInited && gisInited) {
-                loginBtn.disabled = false;
-            }
-        }
-        
-        loginBtn.addEventListener('click', () => {
-             if (tokenClient) {
-                tokenClient.requestAccessToken();
-            } else {
-                console.error("Token client not initialized.");
-            }
-        });
-
-        // Callback setelah Autentikasi
-        async function authCallback(tokenResponse) {
-            if (tokenResponse && tokenResponse.access_token) {
-                gapi.client.setToken(tokenResponse);
-                authPage.style.display = 'none';
-                appContent.style.display = 'flex';
-                showPage('gallery-page');
-                loadDriveData();
-            } else {
-                console.error("Authentication failed:", tokenResponse);
-            }
-        }
 
         // --- Navigasi Halaman ---
         navLinks.forEach(link => {
@@ -692,7 +606,7 @@
             });
         }
 
-        // --- Logika Google Drive ---
+        // --- Logika Google Drive (via Apps Script) ---
         
         function showLoader(show) {
             loader.classList.toggle('active', show);
@@ -701,90 +615,29 @@
         async function loadDriveData() {
             showLoader(true);
             try {
-                const [files, quota] = await Promise.all([
-                    getAllFiles(),
-                    getStorageQuota()
-                ]);
+                // Panggil Apps Script untuk data
+                const response = await fetch(APPS_SCRIPT_URL + '?action=getDriveData');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
                 
-                const categorizedFiles = categorizeFiles(files);
-                
-                renderGallery(categorizedFiles);
-                renderStatistics(categorizedFiles, quota);
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                renderGallery(data.files);
+                renderStatistics(data.files, data.quota);
 
             } catch (error) {
                 console.error("Error loading Drive data:", error);
-                alert("Gagal memuat data dari Google Drive. Coba refresh halaman.");
+                alert("Gagal memuat data dari Google Drive: " + error.message);
             } finally {
                 showLoader(false);
             }
         }
 
-        async function getAllFiles() {
-            let allFiles = [];
-            let pageToken = null;
-            
-            try {
-                do {
-                    const response = await gapi.client.drive.files.list({
-                        q: `'${CONFIG.FOLDER_ID}' in parents and trashed = false`,
-                        fields: 'nextPageToken, files(id, name, mimeType, thumbnailLink, webContentLink, size, iconLink)',
-                        pageSize: 100,
-                        pageToken: pageToken
-                    });
-                    
-                    if (response.result.files) {
-                        allFiles = allFiles.concat(response.result.files);
-                    }
-                    pageToken = response.result.nextPageToken;
-                } while (pageToken);
-
-                return allFiles;
-            } catch (error) {
-                 console.error("Error fetching files:", error);
-                 // Cek jika error karena folder tidak ditemukan
-                 if (error.status === 404) {
-                     alert(`Error: Folder ID "${CONFIG.FOLDER_ID}" tidak ditemukan. Pastikan Folder ID sudah benar dan Anda memiliki akses.`);
-                 }
-                 return []; // Kembalikan array kosong jika error
-            }
-        }
-
-        async function getStorageQuota() {
-            try {
-                const response = await gapi.client.drive.about.get({
-                    fields: 'storageQuota'
-                });
-                return response.result.storageQuota;
-            } catch (error) {
-                console.error("Error fetching storage quota:", error);
-                return null;
-            }
-        }
-
-        function categorizeFiles(files) {
-            const categories = {
-                photos: [],
-                videos: [],
-                music: [],
-                files: []
-            };
-
-            files.forEach(file => {
-                const mime = file.mimeType;
-                if (mime.startsWith('image/')) {
-                    categories.photos.push(file);
-                } else if (mime.startsWith('video/')) {
-                    categories.videos.push(file);
-                } else if (mime.startsWith('audio/')) {
-                    categories.music.push(file);
-                } else {
-                    categories.files.push(file);
-                }
-            });
-            return categories;
-        }
-
-        // --- Render Tampilan ---
+        // --- Render Tampilan (SAMA SEPERTI SEBELUMNYA) ---
 
         function renderGallery(categories) {
             for (const key in categories) {
@@ -811,9 +664,8 @@
                     let icon = 'file'; // default icon
                     
                     if (key === 'photos') {
-                        // Gunakan thumbnailLink, tapi ganti ukuran agar lebih besar
-                        const thumbnailUrl = file.thumbnailLink ? file.thumbnailLink.replace('=s220', '=s400') : '';
-                        content = `<img src="${thumbnailUrl}" alt="${file.name}" loading="lazy">`;
+                        // thumbnailLink dari Apps Script
+                        content = `<img src="${file.thumbnailUrl}" alt="${file.name}" loading="lazy">`;
                     } else {
                          if (key === 'videos') icon = 'video';
                          if (key === 'music') icon = 'music';
@@ -831,7 +683,7 @@
                         ${content}
                         <div class="grid-overlay">
                             <span class="grid-overlay-filename" title="${file.name}">${file.name}</span>
-                            <a href="${file.webContentLink}&download=true" class="download-btn" title="Download" target="_blank" rel="noopener noreferrer">
+                            <a href="${file.downloadUrl}" class="download-btn" title="Download" target="_blank" rel="noopener noreferrer">
                                 <svg><use href="#icon-download"></use></svg>
                             </a>
                         </div>
@@ -842,16 +694,18 @@
         }
 
         function renderStatistics(categories, quota) {
-            // --- Chart Penyimpanan (Doughnut) ---
+             // --- Chart Penyimpanan (Doughnut) ---
             const storageCtx = document.getElementById('storage-chart').getContext('2d');
             const used = quota ? parseFloat(quota.usage) : 0;
             const limit = quota ? parseFloat(quota.limit) : 1; // hindari pembagian dgn 0
             const free = limit - used;
             
             const usedGB = (used / (1024**3)).toFixed(2);
-            const limitGB = (limit / (1024**3)).toFixed(2);
+            // Cek jika limit -1 (Unlimited)
+            const limitGB = (limit === -1) ? "Unlimited" : (limit / (1024**3)).toFixed(2);
+            const storageText = (limit === -1) ? `Terpakai: ${usedGB} GB` : `Terpakai: ${usedGB} GB / ${limitGB} GB`;
 
-            document.getElementById('storage-text').textContent = `Terpakai: ${usedGB} GB / ${limitGB} GB`;
+            document.getElementById('storage-text').textContent = storageText;
 
             if (storageChart) storageChart.destroy();
             storageChart = new Chart(storageCtx, {
@@ -859,8 +713,9 @@
                 data: {
                     labels: ['Terpakai', 'Tersedia'],
                     datasets: [{
-                        data: [used, free],
-                        backgroundColor: [var(--accent-color), '#555'],
+                        // Jika unlimited, buat seolah-olah penuh
+                        data: (limit === -1) ? [used, 1] : [used, free], 
+                        backgroundColor: [accentColor, secondaryColor], // Menggunakan warna dari CSS
                         borderWidth: 0,
                     }]
                 },
@@ -868,7 +723,7 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { labels: { color: var(--text-color) } }
+                        legend: { labels: { color: textColor } } // Menggunakan warna dari CSS
                     }
                 }
             });
@@ -889,14 +744,14 @@
                     labels: ['Foto', 'Video', 'Musik', 'File Lain'],
                     datasets: [{
                         data: [counts.photos, counts.videos, counts.music, counts.files],
-                        backgroundColor: ['#3498db', '#e74c3c', '#9b59b6', '#f1c40f'],
+                        backgroundColor: [accentColor, '#e74c3c', '#9b59b6', '#f1c40f'], // Gunakan accentColor
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { labels: { color: var(--text-color) } }
+                        legend: { labels: { color: textColor } } // Menggunakan warna dari CSS
                     }
                 }
             });
@@ -917,15 +772,7 @@
             `;
         }
         
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 B';
-            const k = 1024;
-            const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-        }
-
-        // --- Logika Upload ---
+        // --- Logika Upload (BARU - via Apps Script) ---
         
         function setupUploadListeners() {
             // Klik drop zone
@@ -936,25 +783,27 @@
                 e.preventDefault();
                 dropZone.classList.add('dragover');
             });
-            dropZone.addEventListener('dragleave', () => {
+
+            dropZone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
                 dropZone.classList.remove('dragover');
             });
+            
             dropZone.addEventListener('drop', (e) => {
                 e.preventDefault();
                 dropZone.classList.remove('dragover');
-                const files = e.dataTransfer.files;
-                if (files.length > 0) {
-                    handleFileSelect(files[0]);
+                if (e.dataTransfer.files.length > 0) {
+                    handleFile(e.dataTransfer.files[0]);
                 }
             });
-            
+
             // File input change
             fileInput.addEventListener('change', (e) => {
                 if (e.target.files.length > 0) {
-                    handleFileSelect(e.target.files[0]);
+                    handleFile(e.target.files[0]);
                 }
             });
-            
+
             // Form submit
             uploadForm.addEventListener('submit', (e) => {
                 e.preventDefault();
@@ -964,78 +813,111 @@
             });
         }
         
-        function handleFileSelect(file) {
+        function handleFile(file) {
             currentFile = file;
             fileNameDisplay.textContent = file.name;
             uploadBtn.disabled = false;
-            resetUploadUI();
         }
-        
-        function resetUploadUI() {
+
+        function resetUploadForm() {
+            currentFile = null;
+            fileInput.value = ''; // Reset file input
+            fileNameDisplay.textContent = 'Tidak ada file dipilih.';
+            uploadBtn.disabled = true;
             progressContainer.style.display = 'none';
             progressBar.style.width = '0%';
             uploadStatus.textContent = '';
         }
-        
+
+        // FUNGSI UPLOAD YANG DIUBAH TOTAL
         function uploadFile(file) {
-            if (!file) return;
-
             uploadBtn.disabled = true;
-            uploadStatus.textContent = 'Mempersiapkan unggahan...';
+            uploadStatus.textContent = 'Mempersiapkan file...';
+            // Tampilkan progress bar sebagai indikator 'sedang bekerja'
             progressContainer.style.display = 'block';
-
-            const metadata = {
-                'name': file.name,
-                'mimeType': file.type || 'application/octet-stream',
-                'parents': [CONFIG.FOLDER_ID]
-            };
-
-            const uploader = new gapi.client.drive.files.create({
-                resource: metadata,
-                media: {
-                    body: file
-                },
-                fields: 'id'
-            }, {
-                // Gunakan Resumable Upload
-                uploadType: 'resumable'
-            });
-
-            uploader.upload().then(response => {
-                uploadStatus.textContent = 'Unggahan selesai!';
-                progressBar.style.width = '100%';
-                
-                // Reset form setelah 2 detik
-                setTimeout(() => {
-                    resetUploadUI();
-                    fileNameDisplay.textContent = 'Tidak ada file dipilih.';
-                    currentFile = null;
-                    uploadForm.reset();
-                    
-                    // Pindah ke galeri dan refresh
-                    showPage('gallery-page');
-                    loadDriveData();
-                }, 2000);
-
-            }, err => {
-                console.error("Upload error:", err);
-                uploadStatus.textContent = `Error: ${err.result.message}`;
-                uploadBtn.disabled = false; // Izinkan coba lagi
-            });
+            progressBar.style.width = '100%'; 
             
-            // Sayangnya, gapi.client.drive.files.create dengan uploadType: 'resumable'
-            // tidak secara native mengekspos event 'progress'.
-            // Untuk progress bar yang akurat, kita perlu menggunakan XHR manual
-            // ke endpoint resumable, yang jauh lebih kompleks.
-            // Untuk saat ini, kita akan tunjukkan status "mengunggah".
-            uploadStatus.textContent = 'Mengunggah file... (Progress bar mungkin tidak update untuk GAPI simple upload)';
-            progressBar.style.width = '50%'; // Tunjukkan progress palsu
+            const reader = new FileReader();
+            reader.readAsDataURL(file); // Baca file sebagai Base64
+            
+            reader.onload = async () => {
+                uploadStatus.textContent = 'Mengunggah ke server...';
+                // Dapatkan data base64 saja, tanpa prefix
+                const fileData = reader.result.split(',')[1];
+                
+                const payload = {
+                    action: 'uploadFile',
+                    filename: file.name,
+                    mimeType: file.type || 'application/octet-stream',
+                    filedata: fileData
+                };
+
+                try {
+                    const response = await fetch(APPS_SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify(payload),
+                        headers: {
+                            'Content-Type': 'text/plain;charset=utf-8', // Apps Script doPost menerima ini
+                        }
+                    });
+                    
+                    const result = await response.json();
+
+                    if (result.status === 'success') {
+                        uploadStatus.textContent = 'Upload Selesai!';
+                        setTimeout(() => {
+                           resetUploadForm();
+                           // Refresh galeri jika sedang di halaman galeri
+                           if (document.getElementById('gallery-page').classList.contains('active')) {
+                                loadDriveData();
+                           }
+                        }, 1500);
+                    } else {
+                        throw new Error(result.error || 'Upload gagal di server.');
+                    }
+                } catch (error) {
+                    console.error("Error during upload:", error);
+                    uploadStatus.textContent = 'Upload Gagal: ' + error.message;
+                    uploadBtn.disabled = false;
+                    progressBar.style.width = '0%'; // Sembunyikan progress bar lagi
+                }
+            };
+            
+            reader.onerror = () => {
+                console.error("Error reading file");
+                uploadStatus.textContent = 'Gagal membaca file.';
+                uploadBtn.disabled = false;
+            };
         }
         
-        // --- Inisialisasi Aplikasi ---
-        setupUploadListeners();
+        // --- Helper & Init ---
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+            // Pastikan bytes adalah angka sebelum di-log
+            const bytesNum = parseInt(bytes, 10);
+            if (isNaN(bytesNum) || bytesNum === 0) return '0 B';
+            const i = Math.floor(Math.log(bytesNum) / Math.log(k));
+            return parseFloat((bytesNum / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // Panggil setup listeners saat DOM siap
+        document.addEventListener('DOMContentLoaded', () => {
+            // Ambil CSS variables untuk digunakan di Chart.js
+            const rootStyles = getComputedStyle(document.documentElement);
+            accentColor = rootStyles.getPropertyValue('--accent-color').trim();
+            textColor = rootStyles.getPropertyValue('--text-color').trim();
+            secondaryColor = rootStyles.getPropertyValue('--secondary-color').trim() || '#555';
+            
+            // Setup listeners untuk upload
+            setupUploadListeners();
+            
+            // Muat data saat halaman pertama kali dibuka
+            loadDriveData();
+        });
 
     </script>
 </body>
 </html>
-
