@@ -1041,7 +1041,11 @@
             const used = quota ? parseFloat(quota.usage) : 0;
             const limit = (quota && quota.limit > 0) ? parseFloat(quota.limit) : (used > 0 ? used : 1); 
             const free = (quota && quota.limit > 0) ? limit - used : 0;
-            const percent = (limit <= 0 || used <= 0) ? 0 : Math.min((used / limitless * 100, 100);
+            // ==================================================================
+            // INI DIA PERBAIKANNYA (V11)
+            // Saya salah ketik 'limitless' di V10, sekarang sudah jadi 'limit'
+            // ==================================================================
+            const percent = (limit <= 0 || used <= 0) ? 0 : Math.min((used / limit) * 100, 100);
             
             // Update progress circle
             const circle = document.getElementById('progress-circle');
