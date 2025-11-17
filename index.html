@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Private Space</title>
+    <!-- Impor Chart.js untuk diagram statistik -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* CSS Kustom (Tanpa Framework) */
+        :root {
+            --bg-color: #121212;
+            --primary-color: #1e1e1e;
+            --secondary-color: #2a2a2a;
+            --text-color: #e0e0e0;
+            --accent-color: #bb86fc;
+            --font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            overscroll-behavior: none;
+        }
+
+        /* Halaman Autentikasi */
+        #auth-page {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        #auth-page h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            margin-bottom: 1rem;
+        }
+
+        #auth-page p {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            color: #aaa;
+        }
+
+        #login-btn {
+            background-color: var(--accent-color);
+            color: #121212;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        #login-btn:hover {
+            background-color: #a06bf3;
+            transform: translateY(-2px);
+        }
+
+        /* Konten Aplikasi Utama (disembunyikan secara default) */
+        #app-content {
+            display: none;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Navigasi */
+        nav {
+            background-color: var(--primary-color);
+            border-bottom: 1px solid #333;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        nav a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        nav a.active,
+        nav a:hover {
+            background-color: var(--secondary-color);
+        }
+
+        /* Kontainer Halaman */
+        .page-container {
+            flex-grow: 1;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .page {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 400;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #444;
+            padding-bottom: 0.5rem;
+        }
+
+        /* Halaman Galeri */
+        .gallery-section {
+            margin-bottom: 2.5rem;
+        }
+
+        .grid-container {
+            display: grid;
+            /* 2 kolom di HP */
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        /* 4 kolom di tablet dan PC, sesuai permintaan */
+        @media (min-width: 768px) {
+            .grid-container {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .grid-item {
+            position: relative;
+            aspect-ratio: 1 / 1;
+            background-color: var(--secondary-color);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .grid-item:hover {
+            transform: scale(1.03);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        .grid-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.3s ease;
+        }
+
+        .grid-item:hover img {
+            opacity: 0.7;
+        }
+
+        /* Untuk file (non-gambar) */
+        .file-icon {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .file-icon svg {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 10px;
+            opacity: 0.7;
+        }
+
+        .file-name {
+            font-size: 0.9rem;
+            word-break: break-all;
+            max-height: 3.6em; /* Tampilkan maks 3 baris */
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Overlay untuk info dan download */
+        .grid-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.8) 100%);
+            padding: 2rem 1rem 1rem;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            opacity: 0;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .grid-item:hover .grid-overlay {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .grid-overlay-filename {
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 70%;
+        }
+
+        .download-btn {
+            background-color: var(--accent-color);
+            color: #121212;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .download-btn:hover {
+            background-color: #a06bf3;
+        }
+
+        .download-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .empty-gallery {
+            color: #888;
+            padding: 2rem;
+            text-align: center;
+            background: var(--secondary-color);
+            border-radius: 12px;
+        }
+
+        /* Halaman Upload */
+        #upload-form {
+            background-color: var(--primary-color);
+            padding: 2.5rem;
+            border-radius: 12px;
+            max-width: 600px;
+            margin: 0 auto;
+            border: 1px solid #333;
+        }
+
+        #drop-zone {
+            border: 2px dashed #555;
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        #drop-zone.dragover {
+            background-color: var(--secondary-color);
+            border-color: var(--accent-color);
+        }
+
+        #drop-zone p {
+            font-size: 1.1rem;
+            color: #aaa;
+            margin-bottom: 1rem;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        #file-name-display {
+            margin-top: 1.5rem;
+            font-style: italic;
+            color: #ccc;
+        }
+
+        .upload-btn {
+            background-color: var(--accent-color);
+            color: #121212;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            display: block;
+            width: 100%;
+            margin-top: 2rem;
+        }
+        
+        .upload-btn:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+
+        #upload-progress-container {
+            width: 100%;
+            background-color: var(--secondary-color);
+            border-radius: 8px;
+            margin-top: 1.5rem;
+            display: none;
+        }
+
+        #upload-progress-bar {
+            width: 0%;
+            height: 10px;
+            background-color: var(--accent-color);
+            border-radius: 8px;
+            transition: width 0.3s ease;
+        }
+        #upload-status {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
+        /* Halaman Statistik */
+        #stats-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+        
+        @media (min-width: 768px) {
+            #stats-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .stat-card {
+            background-color: var(--primary-color);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid #333;
+        }
+
+        .stat-card h3 {
+            font-size: 1.3rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        /* Ringkasan Teks */
+        #file-summary {
+            list-style: none;
+            padding: 0;
+        }
+        #file-summary li {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1rem;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #333;
+        }
+        #file-summary li:last-child {
+            border-bottom: none;
+        }
+        #file-summary span:first-child {
+            font-weight: 500;
+        }
+        #file-summary span:last-child {
+            color: #ccc;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--primary-color);
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.9rem;
+            color: #888;
+            margin-top: 2rem;
+            border-top: 1px solid #333;
+        }
+
+        /* Loader */
+        .loader-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9998;
+            justify-content: center;
+            align-items: center;
+        }
+        .loader-container.active {
+            display: flex;
+        }
+        .loader {
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid var(--accent-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- SVG Ikon untuk Download dan File -->
+    <svg style="display:none;">
+        <symbol id="icon-download" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M19.35 10.04C18.67 6.59 15.64 4 12 4C9.11 4 6.6 5.64 5.35 8.04C2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5c0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5l-5-5h3V9h4v4h3z"/>
+        </symbol>
+        <symbol id="icon-file" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/>
+        </symbol>
+        <symbol id="icon-music" viewBox="0 0 24 24">
+             <path fill="currentColor" d="M12 3v10.55c-.59-.34-1.27-.55-2-.55c-2.21 0-4 1.79-4 4s1.79 4 4 4s4-1.79 4-4V7h4V3h-6z"/>
+        </symbol>
+        <symbol id="icon-video" viewBox="0 0 24 24">
+             <path fill="currentColor" d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
+        </symbol>
+    </svg>
+
+    <!-- Halaman Autentikasi -->
+    <div id="auth-page">
+        <h1>Our Private Space</h1>
+        <p>Shalom</p>
+        <button id="login-btn">Login Google</button>
+    </div>
+
+    <!-- Konten Aplikasi Utama -->
+    <main id="app-content">
+        <nav>
+            <a href="#gallery" id="nav-gallery" class="nav-link active">Galeri</a>
+            <a href="#upload" id="nav-upload" class="nav-link">Unggah</a>
+            <a href="#stats" id="nav-stats" class="nav-link">Statistik</a>
+        </nav>
+
+        <div class="page-container">
+            <!-- Halaman Galeri -->
+            <section id="gallery-page" class="page active">
+                <div class="gallery-section">
+                    <h2>Foto</h2>
+                    <div class="grid-container" id="photos-grid">
+                        <!-- Konten foto diisi oleh JavaScript -->
+                    </div>
+                    <p id="empty-photos" class="empty-gallery" style="display: none;">Belum ada foto.</p>
+                </div>
+                <div class="gallery-section">
+                    <h2>Video</h2>
+                    <div class="grid-container" id="videos-grid">
+                        <!-- Konten video diisi oleh JavaScript -->
+                    </div>
+                    <p id="empty-videos" class="empty-gallery" style="display: none;">Belum ada video.</p>
+                </div>
+                <div class="gallery-section">
+                    <h2>Musik</h2>
+                    <div class="grid-container" id="music-grid">
+                        <!-- Konten musik diisi oleh JavaScript -->
+                    </div>
+                    <p id="empty-music" class="empty-gallery" style="display: none;">Belum ada musik.</p>
+                </div>
+                <div class="gallery-section">
+                    <h2>File Lain</h2>
+                    <div class="grid-container" id="files-grid">
+                        <!-- Konten file diisi oleh JavaScript -->
+                    </div>
+                    <p id="empty-files" class="empty-gallery" style="display: none;">Belum ada file lain.</p>
+                </div>
+            </section>
+
+            <!-- Halaman Upload -->
+            <section id="upload-page" class="page">
+                <h2>Unggah File Baru</h2>
+                <form id="upload-form">
+                    <div id="drop-zone">
+                        <p>Tarik & lepas file di sini, atau klik untuk memilih file</p>
+                        <input type="file" id="file-input" required>
+                    </div>
+                    <div id="file-name-display">Tidak ada file dipilih.</div>
+                    <div id="upload-progress-container">
+                        <div id="upload-progress-bar"></div>
+                    </div>
+                    <div id="upload-status"></div>
+                    <button type="submit" id="upload-btn" class="upload-btn" disabled>Unggah</button>
+                </form>
+            </section>
+
+            <!-- Halaman Statistik -->
+            <section id="stats-page" class="page">
+                <h2>Statistik Penyimpanan</h2>
+                <div id="stats-container">
+                    <div class="stat-card">
+                        <h3>Penyimpanan Drive</h3>
+                        <canvas id="storage-chart"></canvas>
+                        <p id="storage-text" style="text-align: center; margin-top: 1rem;"></p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Total File</h3>
+                        <canvas id="file-type-chart"></canvas>
+                    </div>
+                    <div class="stat-card" style="grid-column: 1 / -1;">
+                        <h3>Rangkuman Ukuran File</h3>
+                        <ul id="file-summary">
+                            <!-- Diisi oleh JavaScript -->
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <footer>
+            <p>&copy; 2025 Our Private Space. Dibuat Menggunakan Skils dan Niat</p>
+        </footer>
+    </main>
+    
+    <!-- Loader Overlay -->
+    <div id="loader" class="loader-container">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Google API Client & Identity Scripts -->
+    <script src="https://apis.google.com/js/api.js" async defer onload="gapiLoaded()"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer onload="gisLoaded()"></script>
+
+    <script>
+        // --- KONFIGURASI (WAJIB DIISI!) ---
+        // Harap isi nilai-nilai ini sesuai dengan petunjuk di README.md
+        const CONFIG = {
+            CLIENT_ID: "", // <-- Isi Client ID Anda di sini
+            API_KEY: "",     // <-- Isi API Key Anda di sini
+            FOLDER_ID: ""    // <-- Isi Folder ID Google Drive Anda di sini
+        };
+        // ------------------------------------
+
+        // Cek Konfigurasi
+        if (!CONFIG.CLIENT_ID || !CONFIG.API_KEY || !CONFIG.FOLDER_ID) {
+            alert("MOHON LENGKAPI KONFIGURASI");
+            document.body.innerHTML = "<h1>Error: LENGKAPI KONFIGURASI </h1><p>Harap baca file README.md untuk instruksi setup.</p>";
+        }
+
+        const SCOPES = 'https://www.googleapis.com/auth/drive';
+
+        let tokenClient;
+        let gapiInited = false;
+        let gisInited = false;
+        let storageChart = null;
+        let fileTypeChart = null;
+        let currentFile = null;
+
+        // Elemen DOM
+        const loginBtn = document.getElementById('login-btn');
+        const authPage = document.getElementById('auth-page');
+        const appContent = document.getElementById('app-content');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const pages = document.querySelectorAll('.page');
+        const loader = document.getElementById('loader');
+        
+        // Elemen Upload
+        const uploadForm = document.getElementById('upload-form');
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const fileNameDisplay = document.getElementById('file-name-display');
+        const uploadBtn = document.getElementById('upload-btn');
+        const progressContainer = document.getElementById('upload-progress-container');
+        const progressBar = document.getElementById('upload-progress-bar');
+        const uploadStatus = document.getElementById('upload-status');
+
+        // Elemen Galeri
+        const grids = {
+            photos: document.getElementById('photos-grid'),
+            videos: document.getElementById('videos-grid'),
+            music: document.getElementById('music-grid'),
+            files: document.getElementById('files-grid')
+        };
+        const emptyMessages = {
+            photos: document.getElementById('empty-photos'),
+            videos: document.getElementById('empty-videos'),
+            music: document.getElementById('empty-music'),
+            files: document.getElementById('empty-files')
+        };
+
+        // Inisialisasi API Google
+        function gapiLoaded() {
+            gapi.load('client', initializeGapiClient);
+        }
+
+        async function initializeGapiClient() {
+            await gapi.client.init({
+                apiKey: CONFIG.API_KEY,
+                discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"],
+            });
+            gapiInited = true;
+            maybeEnableButtons();
+        }
+
+        function gisLoaded() {
+            tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: CONFIG.CLIENT_ID,
+                scope: SCOPES,
+                callback: authCallback,
+            });
+            gisInited = true;
+            maybeEnableButtons();
+        }
+
+        function maybeEnableButtons() {
+            if (gapiInited && gisInited) {
+                loginBtn.disabled = false;
+            }
+        }
+        
+        loginBtn.addEventListener('click', () => {
+             if (tokenClient) {
+                tokenClient.requestAccessToken();
+            } else {
+                console.error("Token client not initialized.");
+            }
+        });
+
+        // Callback setelah Autentikasi
+        async function authCallback(tokenResponse) {
+            if (tokenResponse && tokenResponse.access_token) {
+                gapi.client.setToken(tokenResponse);
+                authPage.style.display = 'none';
+                appContent.style.display = 'flex';
+                showPage('gallery-page');
+                loadDriveData();
+            } else {
+                console.error("Authentication failed:", tokenResponse);
+            }
+        }
+
+        // --- Navigasi Halaman ---
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const pageId = e.target.hash.substring(1) + '-page';
+                showPage(pageId);
+                
+                // Refresh data jika ke halaman galeri atau stats
+                if (pageId === 'gallery-page' || pageId === 'stats-page') {
+                    loadDriveData();
+                }
+            });
+        });
+
+        function showPage(pageId) {
+            pages.forEach(page => {
+                page.classList.toggle('active', page.id === pageId);
+            });
+            navLinks.forEach(link => {
+                link.classList.toggle('active', link.hash === `#${pageId.replace('-page', '')}`);
+            });
+        }
+
+        // --- Logika Google Drive ---
+        
+        function showLoader(show) {
+            loader.classList.toggle('active', show);
+        }
+
+        async function loadDriveData() {
+            showLoader(true);
+            try {
+                const [files, quota] = await Promise.all([
+                    getAllFiles(),
+                    getStorageQuota()
+                ]);
+                
+                const categorizedFiles = categorizeFiles(files);
+                
+                renderGallery(categorizedFiles);
+                renderStatistics(categorizedFiles, quota);
+
+            } catch (error) {
+                console.error("Error loading Drive data:", error);
+                alert("Gagal memuat data dari Google Drive. Coba refresh halaman.");
+            } finally {
+                showLoader(false);
+            }
+        }
+
+        async function getAllFiles() {
+            let allFiles = [];
+            let pageToken = null;
+            
+            try {
+                do {
+                    const response = await gapi.client.drive.files.list({
+                        q: `'${CONFIG.FOLDER_ID}' in parents and trashed = false`,
+                        fields: 'nextPageToken, files(id, name, mimeType, thumbnailLink, webContentLink, size, iconLink)',
+                        pageSize: 100,
+                        pageToken: pageToken
+                    });
+                    
+                    if (response.result.files) {
+                        allFiles = allFiles.concat(response.result.files);
+                    }
+                    pageToken = response.result.nextPageToken;
+                } while (pageToken);
+
+                return allFiles;
+            } catch (error) {
+                 console.error("Error fetching files:", error);
+                 // Cek jika error karena folder tidak ditemukan
+                 if (error.status === 404) {
+                     alert(`Error: Folder ID "${CONFIG.FOLDER_ID}" tidak ditemukan. Pastikan Folder ID sudah benar dan Anda memiliki akses.`);
+                 }
+                 return []; // Kembalikan array kosong jika error
+            }
+        }
+
+        async function getStorageQuota() {
+            try {
+                const response = await gapi.client.drive.about.get({
+                    fields: 'storageQuota'
+                });
+                return response.result.storageQuota;
+            } catch (error) {
+                console.error("Error fetching storage quota:", error);
+                return null;
+            }
+        }
+
+        function categorizeFiles(files) {
+            const categories = {
+                photos: [],
+                videos: [],
+                music: [],
+                files: []
+            };
+
+            files.forEach(file => {
+                const mime = file.mimeType;
+                if (mime.startsWith('image/')) {
+                    categories.photos.push(file);
+                } else if (mime.startsWith('video/')) {
+                    categories.videos.push(file);
+                } else if (mime.startsWith('audio/')) {
+                    categories.music.push(file);
+                } else {
+                    categories.files.push(file);
+                }
+            });
+            return categories;
+        }
+
+        // --- Render Tampilan ---
+
+        function renderGallery(categories) {
+            for (const key in categories) {
+                const grid = grids[key];
+                const emptyMsg = emptyMessages[key];
+                const files = categories[key];
+                
+                grid.innerHTML = ''; // Kosongkan grid
+                
+                if (files.length === 0) {
+                    emptyMsg.style.display = 'block';
+                    grid.style.display = 'none';
+                    continue;
+                }
+                
+                emptyMsg.style.display = 'none';
+                grid.style.display = 'grid';
+
+                files.forEach(file => {
+                    const item = document.createElement('div');
+                    item.className = 'grid-item';
+                    
+                    let content = '';
+                    let icon = 'file'; // default icon
+                    
+                    if (key === 'photos') {
+                        // Gunakan thumbnailLink, tapi ganti ukuran agar lebih besar
+                        const thumbnailUrl = file.thumbnailLink ? file.thumbnailLink.replace('=s220', '=s400') : '';
+                        content = `<img src="${thumbnailUrl}" alt="${file.name}" loading="lazy">`;
+                    } else {
+                         if (key === 'videos') icon = 'video';
+                         if (key === 'music') icon = 'music';
+                         
+                         content = `
+                            <div class="file-icon">
+                                <svg><use href="#icon-${icon}"></use></svg>
+                                <span class="file-name">${file.name}</span>
+                            </div>
+                         `;
+                    }
+                    
+                    // tambahkan overlay
+                    item.innerHTML = `
+                        ${content}
+                        <div class="grid-overlay">
+                            <span class="grid-overlay-filename" title="${file.name}">${file.name}</span>
+                            <a href="${file.webContentLink}&download=true" class="download-btn" title="Download" target="_blank" rel="noopener noreferrer">
+                                <svg><use href="#icon-download"></use></svg>
+                            </a>
+                        </div>
+                    `;
+                    grid.appendChild(item);
+                });
+            }
+        }
+
+        function renderStatistics(categories, quota) {
+            // --- Chart Penyimpanan (Doughnut) ---
+            const storageCtx = document.getElementById('storage-chart').getContext('2d');
+            const used = quota ? parseFloat(quota.usage) : 0;
+            const limit = quota ? parseFloat(quota.limit) : 1; // hindari pembagian dgn 0
+            const free = limit - used;
+            
+            const usedGB = (used / (1024**3)).toFixed(2);
+            const limitGB = (limit / (1024**3)).toFixed(2);
+
+            document.getElementById('storage-text').textContent = `Terpakai: ${usedGB} GB / ${limitGB} GB`;
+
+            if (storageChart) storageChart.destroy();
+            storageChart = new Chart(storageCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Terpakai', 'Tersedia'],
+                    datasets: [{
+                        data: [used, free],
+                        backgroundColor: [var(--accent-color), '#555'],
+                        borderWidth: 0,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: var(--text-color) } }
+                    }
+                }
+            });
+
+            // --- Chart Tipe File (Pie) ---
+            const fileTypeCtx = document.getElementById('file-type-chart').getContext('2d');
+            const counts = {
+                photos: categories.photos.length,
+                videos: categories.videos.length,
+                music: categories.music.length,
+                files: categories.files.length
+            };
+
+            if (fileTypeChart) fileTypeChart.destroy();
+            fileTypeChart = new Chart(fileTypeCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Foto', 'Video', 'Musik', 'File Lain'],
+                    datasets: [{
+                        data: [counts.photos, counts.videos, counts.music, counts.files],
+                        backgroundColor: ['#3498db', '#e74c3c', '#9b59b6', '#f1c40f'],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: var(--text-color) } }
+                    }
+                }
+            });
+            
+            // --- Rangkuman Ukuran File ---
+            const summaryEl = document.getElementById('file-summary');
+            summaryEl.innerHTML = '';
+            const sizes = {};
+            for (const key in categories) {
+                sizes[key] = categories[key].reduce((acc, file) => acc + (parseInt(file.size) || 0), 0);
+            }
+            
+            summaryEl.innerHTML = `
+                <li><span>Foto (${counts.photos} files)</span> <span>${formatFileSize(sizes.photos)}</span></li>
+                <li><span>Video (${counts.videos} files)</span> <span>${formatFileSize(sizes.videos)}</span></li>
+                <li><span>Musik (${counts.music} files)</span> <span>${formatFileSize(sizes.music)}</span></li>
+                <li><span>File Lain (${counts.files} files)</span> <span>${formatFileSize(sizes.files)}</span></li>
+            `;
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // --- Logika Upload ---
+        
+        function setupUploadListeners() {
+            // Klik drop zone
+            dropZone.addEventListener('click', () => fileInput.click());
+
+            // Drag events
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('dragover');
+            });
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFileSelect(files[0]);
+                }
+            });
+            
+            // File input change
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleFileSelect(e.target.files[0]);
+                }
+            });
+            
+            // Form submit
+            uploadForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                if (currentFile) {
+                    uploadFile(currentFile);
+                }
+            });
+        }
+        
+        function handleFileSelect(file) {
+            currentFile = file;
+            fileNameDisplay.textContent = file.name;
+            uploadBtn.disabled = false;
+            resetUploadUI();
+        }
+        
+        function resetUploadUI() {
+            progressContainer.style.display = 'none';
+            progressBar.style.width = '0%';
+            uploadStatus.textContent = '';
+        }
+        
+        function uploadFile(file) {
+            if (!file) return;
+
+            uploadBtn.disabled = true;
+            uploadStatus.textContent = 'Mempersiapkan unggahan...';
+            progressContainer.style.display = 'block';
+
+            const metadata = {
+                'name': file.name,
+                'mimeType': file.type || 'application/octet-stream',
+                'parents': [CONFIG.FOLDER_ID]
+            };
+
+            const uploader = new gapi.client.drive.files.create({
+                resource: metadata,
+                media: {
+                    body: file
+                },
+                fields: 'id'
+            }, {
+                // Gunakan Resumable Upload
+                uploadType: 'resumable'
+            });
+
+            uploader.upload().then(response => {
+                uploadStatus.textContent = 'Unggahan selesai!';
+                progressBar.style.width = '100%';
+                
+                // Reset form setelah 2 detik
+                setTimeout(() => {
+                    resetUploadUI();
+                    fileNameDisplay.textContent = 'Tidak ada file dipilih.';
+                    currentFile = null;
+                    uploadForm.reset();
+                    
+                    // Pindah ke galeri dan refresh
+                    showPage('gallery-page');
+                    loadDriveData();
+                }, 2000);
+
+            }, err => {
+                console.error("Upload error:", err);
+                uploadStatus.textContent = `Error: ${err.result.message}`;
+                uploadBtn.disabled = false; // Izinkan coba lagi
+            });
+            
+            // Sayangnya, gapi.client.drive.files.create dengan uploadType: 'resumable'
+            // tidak secara native mengekspos event 'progress'.
+            // Untuk progress bar yang akurat, kita perlu menggunakan XHR manual
+            // ke endpoint resumable, yang jauh lebih kompleks.
+            // Untuk saat ini, kita akan tunjukkan status "mengunggah".
+            uploadStatus.textContent = 'Mengunggah file... (Progress bar mungkin tidak update untuk GAPI simple upload)';
+            progressBar.style.width = '50%'; // Tunjukkan progress palsu
+        }
+        
+        // --- Inisialisasi Aplikasi ---
+        setupUploadListeners();
+
+    </script>
+</body>
+</html>
+
